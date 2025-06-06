@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Exam Study Tracker</title>
+  <style>
+    body { font-family: Arial; background: #f5f5f5; padding: 20px; }
+    h1 { text-align: center; color: #2e86de; }
+    .exam-section {
+      background: white; padding: 15px; margin-bottom: 20px;
+      border-left: 5px solid #2e86de; border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .urgent { color: red; font-weight: bold; animation: blink 1s infinite; }
+    @keyframes blink { 0%, 100% {opacity: 1;} 50% {opacity: 0;} }
+    input[type="text"] {
+      width: 60%; padding: 8px; margin-top: 5px;
+      border: 1px solid #ccc; border-radius: 5px;
+    }
+    button {
+      margin-top: 8px; padding: 8px 12px; cursor: pointer;
+      border: none; border-radius: 4px;
+      color: white;
+    }
+    .save { background: #2ecc71; }
+    .save-all { background: #f39c12; }
+    .delete { background: #e74c3c; }
+    .view-progress { background: #2980b9; display: block; margin: 30px auto; }
+
+    .delete-list {
+      background: #fefefe; border: 1px solid #ddd;
+      padding: 10px; margin-top: 10px;
+    }
+    .delete-list div {
+      display: flex; justify-content: space-between;
+      margin-bottom: 5px;
+    }
+    .delete-list button {
+      background: #c0392b; padding: 4px 10px;
+      font-size: 12px;
+    }
+
+    .modal {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0,0,0,0.5); display: none;
+      justify-content: center; align-items: center; z-index: 1000;
+    }
+    .modal-content {
+      background: #fff; padding: 20px; border-radius: 8px;
+      width: 90%; max-width: 700px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    table {
+      width: 100%; border-collapse: collapse; margin-bottom: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc; padding: 10px; text-align: left;
+    }
+    .modal-buttons {
+      display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap;
+    }
+    .modal-buttons button {
+      padding: 8px 16px;
+    }
+    .cancel { background-color: #888; }
+
+    @media screen and (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+
+  h1 {
+    font-size: 1.5em;
+    text-align: center;
+  }
+
+  .exam-progress,
+  .exam-select {
+    padding: 10px;
+    margin-bottom: 20px;
+  }
+
+  .exam-title {
+    font-size: 1.2em;
+  }
+
+  table,
+  th,
+  td {
+    font-size: 0.9em;
+  }
+
+  th,
+  td {
+    padding: 6px;
+  }
+
+  .btn-group {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .btn-group button,
+  .back-btn {
+    width: 100%;
+    margin: 5px 0;
+    font-size: 1em;
+  }
+
+  .exam-option {
+    flex-wrap: wrap;
+  }
+
+  .exam-option label {
+    font-size: 0.95em;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <h1>📚 Exam Study Tracker</h1>
+ <button onclick="window.location.href='index.html'"><a href="index.html" style="
+  display: inline-block; 
+  padding: 10px 20px; 
+  background-color: #2e86de; 
+  color: white; 
+  border-radius: 5px; 
+  text-decoration: none;
+  font-weight: bold;
+">Home</a></button>
+  <div id="examContainer"></div>
+  <button class="view-progress" onclick="window.location.href='info.html'">📊 View Progress Till Now</button>
+
+  <div id="popupModal" class="modal">
+    <div class="modal-content">
+      <h2>Enter Daily Progress</h2>
+      <table>
+        <thead>
+          <tr><th>Subject</th><th>Task / Progress</th></tr>
+        </thead>
+        <tbody id="subjectRows"></tbody>
+      </table>
+      <div class="modal-buttons">
+        <button class="cancel" onclick="closeModal()">Cancel</button>
+        <button class="save" onclick="saveModalProgress()">Save Progress</button>
+        <button class="save-all" onclick="saveProgressForAllExams()">Save Same Progress For All Exams</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const exams = [
+      { name: "SSC Stenographer", date: "2025-08-06" },
+      { name: "SSC CGL", date: "2025-08-13" },
+      { name: "SSC CPO", date: "2025-09-01" },
+      { name: "CAPF", date: "2025-08-03" },
+      { name: "AFCAT 2 2025", date: "2025-08-23" },
+      { name: "CDS 2 2025", date: "2025-09-14" },
+    ];
+
+    const subjects = [
+      "English", "Maths", "Chemistry", "Biology", "Physics",
+      "Indian Geography", "World Geography", "History", "Polity", "Current Affairs"
+    ];
+
+    let currentExamIndex = null;
+    const container = document.getElementById('examContainer');
+    const modal = document.getElementById('popupModal');
+    const subjectRows = document.getElementById('subjectRows');
+
+    function daysLeft(targetDate) {
+      const today = new Date();
+      const examDate = new Date(targetDate);
+      const diff = examDate - today;
+      return Math.ceil(diff / (1000 * 60 * 60 * 24));
+    }
+
+    exams.forEach((exam, index) => {
+      const section = document.createElement('div');
+      section.className = 'exam-section';
+      const days = daysLeft(exam.date);
+      const urgentTag = days < 60 ? `<span class="urgent">⚠ Upcoming Recent Exam</span>` : '';
+      section.innerHTML = `
+        <h2>${exam.name}</h2>
+        <p>📅 ${new Date(exam.date).toDateString()} | 🕒 Days Left: ${days} ${urgentTag}</p>
+        <input type="text" placeholder="Click to enter progress..." id="input${index}" readonly onclick="openModal(${index})" />
+        <button class="delete" onclick="toggleDeleteList(${index})">Delete</button>
+        <div class="delete-list" id="deleteList${index}" style="display: none;"></div>
+      `;
+      container.appendChild(section);
+    });
+
+    function openModal(index) {
+      currentExamIndex = index;
+      subjectRows.innerHTML = '';
+      const today = new Date().toISOString().split('T')[0];
+      const key = `exam_progress_${index}`;
+      const savedData = JSON.parse(localStorage.getItem(key)) || {};
+      const todayProgress = savedData[today] || '';
+      const existingEntries = Object.fromEntries(
+        todayProgress.split(';').map(s => {
+          const [subj, ...rest] = s.trim().split(':');
+          return [subj?.trim(), rest.join(':').trim()];
+        }).filter(Boolean)
+      );
+
+      subjects.forEach((subj, i) => {
+        const savedTask = existingEntries[subj];
+        if (savedTask) {
+          subjectRows.innerHTML += `
+            <tr id="row_${i}">
+              <td>${subj}</td>
+              <td>
+                <span id="task_done_${i}" style="color: green; font-weight: bold;">✅ Task Completed</span>
+                <button onclick="editSubject(${i}, '${subj}')" style="margin-left: 10px; padding: 5px 10px; font-size: 12px;">✏️ Edit Again</button>
+              </td>
+            </tr>
+          `;
+        } else {
+          subjectRows.innerHTML += `
+            <tr id="row_${i}">
+              <td>${subj}</td>
+              <td><input type="text" id="task_${i}" placeholder="Write progress..."></td>
+            </tr>
+          `;
+        }
+      });
+
+      modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+      modal.style.display = 'none';
+      currentExamIndex = null;
+    }
+
+    function collectModalInput() {
+      let combinedProgress = '';
+      subjects.forEach((subj, i) => {
+        const task = document.getElementById(`task_${i}`)?.value.trim();
+        if (task) {
+          combinedProgress += `${subj}: ${task}; `;
+        }
+      });
+      return combinedProgress.trim();
+    }
+
+    function saveModalProgress() {
+      if (currentExamIndex === null) return;
+      const today = new Date().toISOString().split('T')[0];
+      const combinedProgress = collectModalInput();
+      if (!combinedProgress) return alert("Please enter at least one subject's progress.");
+
+      const key = `exam_progress_${currentExamIndex}`;
+      let allProgress = JSON.parse(localStorage.getItem(key)) || {};
+      allProgress[today] = combinedProgress;
+      localStorage.setItem(key, JSON.stringify(allProgress));
+      alert("✅ Progress saved!");
+      closeModal();
+    }
+
+    function saveProgressForAllExams() {
+      const today = new Date().toISOString().split('T')[0];
+      const combinedProgress = collectModalInput();
+      if (!combinedProgress) return alert("Please enter at least one subject's progress.");
+
+      exams.forEach((exam, idx) => {
+        const key = `exam_progress_${idx}`;
+        let allProgress = JSON.parse(localStorage.getItem(key)) || {};
+        allProgress[today] = combinedProgress;
+        localStorage.setItem(key, JSON.stringify(allProgress));
+      });
+      alert("✅ Same progress saved for all exams!");
+      closeModal();
+    }
+
+    function toggleDeleteList(index) {
+      const container = document.getElementById(`deleteList${index}`);
+      const key = `exam_progress_${index}`;
+      const data = JSON.parse(localStorage.getItem(key)) || {};
+
+      if (container.style.display === "none") {
+        container.innerHTML = '';
+        if (Object.keys(data).length === 0) {
+          container.innerHTML = `<i>No saved dates to delete.</i>`;
+        } else {
+          Object.keys(data).sort().forEach(date => {
+            const row = document.createElement('div');
+            row.innerHTML = `
+              <span>${date}: ${data[date]}</span>
+              <button onclick="deleteSpecificDate(${index}, '${date}')">🗑 Delete</button>
+            `;
+            container.appendChild(row);
+          });
+        }
+        container.style.display = "block";
+      } else {
+        container.style.display = "none";
+      }
+    }
+
+    function deleteSpecificDate(index, date) {
+      const key = `exam_progress_${index}`;
+      const data = JSON.parse(localStorage.getItem(key)) || {};
+      delete data[date];
+      if (Object.keys(data).length === 0) {
+        localStorage.removeItem(key);
+      } else {
+        localStorage.setItem(key, JSON.stringify(data));
+      }
+      alert(`Deleted entry for ${date}`);
+      toggleDeleteList(index);
+    }
+
+    function editSubject(index, subjectName) {
+      const row = document.getElementById(`row_${index}`);
+      row.innerHTML = `
+        <td>${subjectName}</td>
+        <td><input type="text" id="task_${index}" placeholder="Write progress..."></td>
+      `;
+    }
+
+   
+  </script>
+</body>
+</html>

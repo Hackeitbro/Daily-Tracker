@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Progress Summary</title>
+  <style>
+    body { font-family: Arial; background: #f0f3f7; padding: 20px; }
+    h1 { text-align: center; color: #34495e; }
+    .exam-progress {
+      background: #fff; padding: 15px;
+      margin-bottom: 30px; border-left: 5px solid #2980b9;
+      border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .exam-title {
+      font-weight: bold; font-size: 1.4em;
+      margin-bottom: 10px; color: #2980b9;
+    }
+    table {
+      width: 100%; border-collapse: collapse; margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ccc; padding: 8px; text-align: left;
+    }
+    th {
+      background-color: #ecf0f1;
+    }
+    .btn-group {
+      text-align: center; margin-top: 20px;
+    }
+    button {
+      background-color: #2e86de; color: white;
+      border: none; padding: 10px 20px;
+      margin: 0 10px; border-radius: 4px;
+      cursor: pointer; font-size: 16px;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #1b4f72;
+    }
+    .back-btn {
+      display: block; margin: 30px auto;
+      padding: 10px 20px; background: #2e86de;
+      color: white; border: none; border-radius: 4px;
+      cursor: pointer;
+    }
+    .exam-select {
+      background: #fff; padding: 15px;
+      border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      max-width: 500px; margin: 0 auto 20px;
+    }
+    .exam-select h3 {
+      margin-bottom: 10px; color: #2c3e50;
+    }
+    .exam-option {
+      display: flex; align-items: center; margin-bottom: 6px;
+    }
+    .exam-option input {
+      margin-right: 10px;
+    }
+
+    @media screen and (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+
+  h1 {
+    font-size: 1.5em;
+    text-align: center;
+  }
+
+  .exam-progress,
+  .exam-select {
+    padding: 10px;
+    margin-bottom: 20px;
+  }
+
+  .exam-title {
+    font-size: 1.2em;
+  }
+
+  table,
+  th,
+  td {
+    font-size: 0.9em;
+  }
+
+  th,
+  td {
+    padding: 6px;
+  }
+
+  .btn-group {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .btn-group button,
+  .back-btn {
+    width: 100%;
+    margin: 5px 0;
+    font-size: 1em;
+  }
+
+  .exam-option {
+    flex-wrap: wrap;
+  }
+
+  .exam-option label {
+    font-size: 0.95em;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <h1>📖 Your Daily Study Progress</h1>
+
+  <div class="exam-select">
+    <h3>📌 Select Exams for PDF Download:</h3>
+    <div class="exam-option">
+      <input type="checkbox" id="selectAll" onchange="toggleAllExams(this)">
+      <label for="selectAll"><strong>All Exams</strong></label>
+    </div>
+    <div id="examCheckboxList"></div>
+  </div>
+
+  <div class="btn-group">
+    <button onclick="downloadPDF('daily')">Download Daily PDF</button>
+    <button onclick="downloadPDF('weekly')">Download Weekly PDF</button>
+    <button onclick="downloadPDF('monthly')">Download Monthly PDF</button>
+  </div>
+
+  <div class="btn-group">
+  <button id="clearOldDataBtn" style="display:none;" onclick="clearLastMonthData()">🗑️ Clear Last Month's Data</button>
+</div>
+
+  <div id="progressContainer"></div>
+  <button class="back-btn" onclick="window.location.href='exam.html'">⬅ Back to Tracker</button>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    const { jsPDF } = window.jspdf;
+    const exams = [
+      "SSC Stenographer", "SSC CGL", "SSC CPO",
+      "CAPF", "AFCAT 2 2025", "CDS 2 2025"
+    ];
+
+    const container = document.getElementById('progressContainer');
+    const allProgressData = [];
+
+    // Create checkbox list for exams
+    const checkboxContainer = document.getElementById("examCheckboxList");
+    exams.forEach((exam, index) => {
+      const id = `exam${index}`;
+      const div = document.createElement('div');
+      div.className = 'exam-option';
+      div.innerHTML = `<input type="checkbox" id="${id}" value="${exam}" class="exam-checkbox">
+                       <label for="${id}">${exam}</label>`;
+      checkboxContainer.appendChild(div);
+    });
+
+    // Load data for each exam
+    exams.forEach((exam, index) => {
+      const key = `exam_progress_${index}`;
+      const data = JSON.parse(localStorage.getItem(key));
+
+      if (data) {
+        const section = document.createElement('div');
+        section.className = 'exam-progress';
+        section.innerHTML = `<div class="exam-title">${exam}</div>`;
+
+        const table = document.createElement('table');
+        table.innerHTML = `
+          <thead>
+            <tr><th>Date</th><th>Subject</th><th>Progress</th></tr>
+          </thead>
+          <tbody></tbody>`;
+
+        const tbody = table.querySelector('tbody');
+        const sortedDates = Object.keys(data).sort();
+
+        sortedDates.forEach(date => {
+          const progressStr = data[date];
+          const entries = progressStr.split(';').map(e => e.trim()).filter(Boolean);
+        
+          entries.forEach((entry, i) => {
+            const [subject, ...rest] = entry.split(':');
+            const progressText = rest.join(':').trim();
+            const row = document.createElement('tr');
+            if (i === 0) {
+              const dateCell = document.createElement('td');
+              dateCell.textContent = date;
+              dateCell.rowSpan = entries.length;
+              row.appendChild(dateCell);
+            }
+            const subjectCell = document.createElement('td');
+            subjectCell.textContent = subject?.trim() || '';
+            const progressCell = document.createElement('td');
+            progressCell.textContent = progressText || '';
+            row.appendChild(subjectCell);
+            row.appendChild(progressCell);
+            tbody.appendChild(row);
+
+            allProgressData.push({
+              exam,
+              date,
+              subject: subject?.trim() || '',
+              progress: progressText || '',
+              jsDate: new Date(date)
+            });
+          });
+        });
+
+        section.appendChild(table);
+        container.appendChild(section);
+      }
+    });
+
+    function getWeekNumber(date) {
+      const d = new Date(date);
+      d.setHours(0,0,0,0);
+      d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+      const week1 = new Date(d.getFullYear(), 0, 4);
+      return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+    }
+
+    function groupByWeek(data) {
+      const grouped = {};
+      data.forEach(item => {
+        const year = item.jsDate.getFullYear();
+        const week = getWeekNumber(item.jsDate);
+        const key = `${year}-W${week}`;
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(item);
+      });
+      return grouped;
+    }
+
+    function groupByMonth(data) {
+      const grouped = {};
+      data.forEach(item => {
+        const year = item.jsDate.getFullYear();
+        const month = item.jsDate.getMonth() + 1;
+        const key = `${year}-${month.toString().padStart(2, '0')}`;
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(item);
+      });
+      return grouped;
+    }
+
+    function generatePDF(title, dataGroups) {
+      const doc = new jsPDF();
+      let y = 10;
+      doc.setFontSize(18);
+      doc.text(title, 10, y);
+      y += 10;
+      doc.setFontSize(12);
+
+      Object.keys(dataGroups).forEach(groupKey => {
+        y += 10;
+        doc.setFontSize(14);
+        doc.text(groupKey, 10, y);
+        y += 8;
+        doc.setFontSize(12);
+        doc.text("Exam", 10, y);
+        doc.text("Date", 50, y);
+        doc.text("Subject", 90, y);
+        doc.text("Progress", 130, y);
+        y += 6;
+        doc.line(10, y, 200, y);
+        y += 4;
+
+        dataGroups[groupKey].forEach(item => {
+          if (y > 280) {
+            doc.addPage(); y = 10;
+          }
+          doc.text(item.exam, 10, y);
+          doc.text(item.date, 50, y);
+          doc.text(item.subject, 90, y);
+          const splitText = doc.splitTextToSize(item.progress, 60);
+          doc.text(splitText, 130, y);
+          y += splitText.length * 6;
+        });
+      });
+
+      doc.save(`${title.replace(/\s+/g, '_')}.pdf`);
+    }
+
+    function getSelectedExams() {
+      const checked = document.querySelectorAll('.exam-checkbox:checked');
+      return Array.from(checked).map(cb => cb.value);
+    }
+
+    function downloadPDF(type) {
+      const selectedExams = getSelectedExams();
+      if (selectedExams.length === 0) {
+        alert("Please select at least one exam.");
+        return;
+      }
+
+      const filteredData = allProgressData.filter(item => selectedExams.includes(item.exam));
+      if (filteredData.length === 0) {
+        alert("No data available for selected exams.");
+        return;
+      }
+
+      if (type === 'daily') {
+        const groupedByDate = {};
+        filteredData.forEach(item => {
+          if (!groupedByDate[item.date]) groupedByDate[item.date] = [];
+          groupedByDate[item.date].push(item);
+        });
+        generatePDF("Daily Progress", groupedByDate);
+
+      } else if (type === 'weekly') {
+        const groupedByWeek = groupByWeek(filteredData);
+        generatePDF("Weekly Progress", groupedByWeek);
+
+      } else if (type === 'monthly') {
+        const groupedByMonth = groupByMonth(filteredData);
+        generatePDF("Monthly Progress", groupedByMonth);
+      }
+    }
+
+    function toggleAllExams(masterCheckbox) {
+      const checkboxes = document.querySelectorAll(".exam-checkbox");
+      checkboxes.forEach(cb => cb.checked = masterCheckbox.checked);
+    }
+
+    function clearLastMonthData() {
+  const today = new Date();
+  const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+
+  exams.forEach((exam, index) => {
+    const key = `exam_progress_${index}`;
+    const stored = JSON.parse(localStorage.getItem(key));
+    if (!stored) return;
+
+    const updatedData = {};
+    Object.keys(stored).forEach(dateStr => {
+      const date = new Date(dateStr);
+      if (date >= new Date(lastMonth.getFullYear(), lastMonth.getMonth() + 1, 1)) {
+        updatedData[dateStr] = stored[dateStr];
+      }
+    });
+
+    if (Object.keys(updatedData).length > 0) {
+      localStorage.setItem(key, JSON.stringify(updatedData));
+    } else {
+      localStorage.removeItem(key);
+    }
+  });
+
+  alert("✅ Last month's data cleared.");
+  location.reload();
+}
+
+// Show the clear button if any data exists older than 1 month
+function checkForOldData() {
+  const now = new Date();
+  const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+
+  let shouldShow = false;
+
+  exams.forEach((exam, index) => {
+    const key = `exam_progress_${index}`;
+    const data = JSON.parse(localStorage.getItem(key));
+    if (!data) return;
+
+    for (let dateStr in data) {
+      const date = new Date(dateStr);
+      if (date < new Date(oneMonthAgo.getFullYear(), oneMonthAgo.getMonth() + 1, 1)) {
+        shouldShow = true;
+        break;
+      }
+    }
+  });
+
+  if (shouldShow) {
+    document.getElementById("clearOldDataBtn").style.display = "inline-block";
+  }
+}
+
+// Call this after data loading
+checkForOldData();
+
+  </script>
+</body>
+</html>

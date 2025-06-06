@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Study Timer</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #1f2e3b;
+      padding: 1rem 2rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    header h1 {
+      font-size: 2rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+    .nav-buttons button {
+      background-color: #30566b;
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      margin-left: 1rem;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .nav-buttons button:hover {
+      background-color: #4783a2;
+    }
+    main {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    .timer-container {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 4rem 2rem;
+      border-radius: 30px;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      max-width: 600px;
+      width: 90%;
+    }
+    .mode-btns button {
+      background-color: transparent;
+      color: #ccc;
+      padding: 0.7rem 1.2rem;
+      margin: 0 0.3rem;
+      border-radius: 9999px;
+      font-size: 1rem;
+      font-weight: 600;
+      border: 2px solid #ccc;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .mode-btns button.active, .mode-btns button:hover {
+      background-color: #fff;
+      color: #1f2e3b;
+    }
+    #timerDisplay {
+      font-size: 7rem;
+      font-weight: bold;
+      font-family: 'Courier New', monospace;
+      margin: 2rem 0;
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+    }
+    #startStopBtn {
+      background-color: #ffffff;
+      color: #1f2e3b;
+      font-size: 1.8rem;
+      font-weight: bold;
+      padding: 0.8rem 2.5rem;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    #startStopBtn:hover {
+      background-color: #30566b;
+      color: #fff;
+    }
+    .focus-msg {
+      margin-top: 2rem;
+      font-size: 1.3rem;
+      color: #ccc;
+    }
+    .tasks-section {
+      margin-top: 4rem;
+      width: 90%;
+      max-width: 600px;
+    }
+    .tasks-section h2 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      color: #eee;
+    }
+    .add-task-box {
+      border: 2px dashed #888;
+      padding: 1.5rem;
+      border-radius: 1rem;
+      text-align: center;
+    }
+    .add-task-box button {
+      background: none;
+      border: none;
+      color: #ddd;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    /* Music Player Bar */
+    .music-player {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      background-color: #1b3042;
+      padding: 0.5rem 1rem;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      user-select: none;
+      overflow-x: auto;
+    }
+    .music-player button {
+      background-color: transparent;
+      border: 2px solid #4783a2;
+      color: #4783a2;
+      padding: 0.4rem 1rem;
+      border-radius: 9999px;
+      cursor: pointer;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: all 0.3s ease;
+    }
+    .music-player button:hover {
+      background-color: #4783a2;
+      color: #1f2e3b;
+    }
+    .music-player button.active {
+      background-color: #fff;
+      color: #1f2e3b;
+      border-color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>StudyTimer</h1>
+    <div class="nav-buttons">
+     <button onclick="window.open('progress.html', '_blank')">📈 Progress</button>
+     <button onclick="openSettings()">⚙️ Settings</button>
+     <button onclick="window.open('exam.html','_blank')">📖 Exam</button>
+    </div>
+  </header>
+
+  <!-- Music Player Bar -->
+  <div class="music-player" id="musicPlayer">
+    <button data-sound="rain" class="">Rain</button>
+    <button data-sound="fire" class="">Fire</button>
+    <button data-sound="forest" class="">Forest</button>
+    <button data-sound="flight" class="">Flight</button>
+    <button data-sound="waves" class="">Waves</button>
+  </div>
+
+  <main>
+    <div class="timer-container">
+      <div class="mode-btns">
+        <button class="active" onclick="setMode('pomodoro', event)">Focus</button>
+        <button onclick="setMode('short', event)">Break</button>
+        <button onclick="setMode('long', event)">Long Break</button>
+      </div>
+      <div id="timerDisplay">25:00</div>
+      <button id="startStopBtn" onclick="toggleTimer()">START</button>
+    </div>
+    <div class="focus-msg">Stay focused and productive ✨</div>
+    <section class="tasks-section">
+      <h2>Today's Tasks</h2>
+      <div class="add-task-box">
+        <button>➕ Add a new task</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Add this inside <body>, preferably near the end -->
+<div id="settingsModal" style="display:none; 
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(5px);
+  justify-content: center; align-items: center; z-index: 9999;">
+  <div style="background: #203a43; color: #eee; padding: 2rem; border-radius: 12px; width: 320px; box-shadow: 0 0 30px #000;">
+    <h2 style="margin-top:0; margin-bottom:1rem; text-align:center;">Settings</h2>
+    
+    <label>Focus Time (minutes):</label>
+    <input type="number" id="focusInput" min="1" max="120" style="width:100%; padding: 0.5rem; margin-bottom:1rem;" />
+    
+    <label>Short Break Time (minutes):</label>
+    <input type="number" id="shortInput" min="1" max="60" style="width:100%; padding: 0.5rem; margin-bottom:1rem;" />
+    
+    <label>Long Break Time (minutes):</label>
+    <input type="number" id="longInput" min="1" max="60" style="width:100%; padding: 0.5rem; margin-bottom:1rem;" />
+    
+    <label>
+      <input type="checkbox" id="soundAlert" /> Enable Sound Alert
+    </label>
+    <br/>
+    <label>
+      <input type="checkbox" id="autoStartNext" /> Auto-start Next Timer
+    </label>
+    
+    <div style="margin-top: 1.5rem; display: flex; justify-content: space-between;">
+      <button onclick="closeSettings()" style="padding: 0.6rem 1.2rem; border:none; background:#30566b; color:#fff; border-radius:6px; cursor:pointer;">Close</button>
+      <button onclick="saveSettings()" style="padding: 0.6rem 1.2rem; border:none; background:#4783a2; color:#fff; border-radius:6px; cursor:pointer;">Save</button>
+    </div>
+  </div>
+</div>
+
+  <script>
+    let currentMode = 'pomodoro'; // default mode
+    let timer;
+    let minutes = 25;
+    let seconds = 0;
+    let isRunning = false;
+
+    function updateDisplay() {
+      const min = String(minutes).padStart(2, '0');
+      const sec = String(seconds).padStart(2, '0');
+      document.getElementById("timerDisplay").textContent = `${min}:${sec}`;
+    }
+
+    function toggleTimer() {
+      if (isRunning) {
+        clearInterval(timer);
+        document.getElementById("startStopBtn").textContent = "START";
+      } else {
+        timer = setInterval(() => {
+          if (seconds === 0) {
+  if (minutes === 0) {
+    clearInterval(timer);
+    alert("Time's up!");
+
+    // ✅ Save stats for progress
+    const today = new Date().toLocaleDateString();
+    const lastDate = localStorage.getItem("lastDate");
+
+    if (lastDate !== today) {
+      localStorage.setItem("totalMinutesToday", 0);
+      localStorage.setItem("lastDate", today);
+      localStorage.setItem("streakCount", "1");
+    }
+
+    if (currentMode === 'pomodoro') {
+      const prev = parseInt(localStorage.getItem("totalMinutesToday") || "0");
+      const sessionTime = parseInt(localStorage.getItem("focusMinutes") || "25");
+      localStorage.setItem("totalMinutesToday", prev + sessionTime);
+
+      // ✅ Update goal display after finishing session
+  updateGoalProgress();
+
+      // Optional: Count total sessions
+      const sess = parseInt(localStorage.getItem("totalFocusSessions") || "0");
+      localStorage.setItem("totalFocusSessions", sess + 1);
+    }
+
+    return;
+  } else {
+    minutes--;
+    seconds = 59;
+  }
+} else {
+  seconds--;
+}
+updateDisplay();
+
+        }, 1000);
+        document.getElementById("startStopBtn").textContent = "STOP";
+      }
+      isRunning = !isRunning;
+    }
+
+    // function setMode(mode, event) {
+    //   if (mode === 'pomodoro') {
+    //     minutes = 25;
+    //   } else if (mode === 'short') {
+    //     minutes = 5;
+    //   } else if (mode === 'long') {
+    //     minutes = 15;
+    //   }
+    //   seconds = 0;
+    //   document.querySelectorAll('.mode-btns button').forEach(btn => btn.classList.remove('active'));
+    //   event.target.classList.add('active');
+    //   updateDisplay();
+    //   if (isRunning) toggleTimer();
+    // }
+
+    // saveSessionProgress(currentMode !== 'pomodoro');
+
+    // updateDisplay();
+
+    // Current timer durations (default)
+let focusTime = 25;
+let shortBreakTime = 5;
+let longBreakTime = 15;
+
+let soundEnabled = false;
+let autoStartNext = false;
+
+function openSettings() {
+  document.getElementById("settingsModal").style.display = "flex";
+  
+  // Set current values in inputs
+  document.getElementById('focusInput').value = focusTime;
+  document.getElementById('shortInput').value = shortBreakTime;
+  document.getElementById('longInput').value = longBreakTime;
+  document.getElementById('soundAlert').checked = soundEnabled;
+  document.getElementById('autoStartNext').checked = autoStartNext;
+}
+
+function closeSettings() {
+  document.getElementById("settingsModal").style.display = "none";
+}
+
+function saveSettings() {
+  const f = parseInt(document.getElementById('focusInput').value);
+  const s = parseInt(document.getElementById('shortInput').value);
+  const l = parseInt(document.getElementById('longInput').value);
+
+  if (isNaN(f) || f <= 0 || f > 120 ||
+      isNaN(s) || s <= 0 || s > 60 ||
+      isNaN(l) || l <= 0 || l > 60) {
+    alert('Please enter valid times in the allowed range.');
+    return;
+  }
+
+  // Save to localStorage
+  localStorage.setItem("focusMinutes", f);
+  localStorage.setItem("shortMinutes", s);
+  localStorage.setItem("longMinutes", l);
+  localStorage.setItem("soundAlert", document.getElementById('soundAlert').checked);
+  localStorage.setItem("autoStartNext", document.getElementById('autoStartNext').checked);
+
+  // Reload settings in variables
+  loadSettings();
+
+  alert('Settings saved!');
+  closeSettings();
+
+  // Update current mode
+  if (currentMode) setMode(currentMode, { target: document.querySelector(`.mode-btns button.active`) });
+}
+
+
+
+  
+  // If currently selected mode is active, update timer display accordingly
+  let activeBtn = document.querySelector('.mode-btns button.active');
+  if (activeBtn) {
+    const mode = activeBtn.textContent.toLowerCase();
+    if (mode.includes('focus')) setMode('pomodoro');
+    else if (mode.includes('break') && !mode.includes('long')) setMode('short');
+    else if (mode.includes('long')) setMode('long');
+  }
+
+
+// Update your existing setMode function to use the new variables:
+
+// function setMode(mode, event) {
+//   currentMode = mode; // ✅ STEP 2: Set the global mode variable
+
+//   if (mode === 'pomodoro') {
+//     minutes = parseInt(localStorage.getItem("focusMinutes") || 25);
+//   } else if (mode === 'short') {
+//     minutes = parseInt(localStorage.getItem("shortMinutes") || 5);
+//   } else if (mode === 'long') {
+//     minutes = parseInt(localStorage.getItem("longMinutes") || 15);
+//   }
+
+//   seconds = 0;
+//   document.querySelectorAll('.mode-btns button').forEach(btn => btn.classList.remove('active'));
+//   event.target.classList.add('active');
+//   updateDisplay();
+
+//   if (isRunning) toggleTimer();
+// }
+
+function setMode(mode, event = { target: null }) {
+  currentMode = mode;
+
+  if (mode === 'pomodoro') {
+    minutes = focusTime;
+  } else if (mode === 'short') {
+    minutes = shortBreakTime;
+  } else if (mode === 'long') {
+    minutes = longBreakTime;
+  }
+
+  seconds = 0;
+
+  // Highlight active button
+  document.querySelectorAll('.mode-btns button').forEach(btn => btn.classList.remove('active'));
+  if (event.target) event.target.classList.add('active');
+
+  updateDisplay();
+
+  if (isRunning) toggleTimer();
+}
+
+
+// Optional: play sound if enabled when timer ends
+function playSound() {
+  if (soundEnabled) {
+    const audio = new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg');
+    audio.play();
+  }
+}
+
+// Modify your timer to use playSound:
+function toggleTimer() {
+  if (isRunning) {
+    clearInterval(timer);
+    document.getElementById("startStopBtn").textContent = "START";
+  } else {
+    timer = setInterval(() => {
+      if (seconds === 0) {
+        if (minutes === 0) {
+          clearInterval(timer);
+          playSound();
+          alert("Time's up!");
+          // Auto-start next timer if enabled
+          if (autoStartNext) {
+            let activeBtn = document.querySelector('.mode-btns button.active');
+            if (activeBtn) {
+              let nextMode;
+              if (activeBtn.textContent.toLowerCase().includes('focus')) nextMode = 'short';
+              else if (activeBtn.textContent.toLowerCase().includes('short')) nextMode = 'pomodoro';
+              else nextMode = 'pomodoro';
+              setMode(nextMode);
+              toggleTimer();
+            }
+          }
+          return;
+        } else {
+          minutes--;
+          seconds = 59;
+        }
+      } else {
+        seconds--;
+      }
+      updateDisplay();
+    }, 1000);
+    document.getElementById("startStopBtn").textContent = "STOP";
+  }
+  isRunning = !isRunning;
+ 
+
+}
+
+// Music Player functionality
+    const sounds = {
+      rain: new Audio('https://cdn.pixabay.com/download/audio/2022/03/22/audio_1b5330af0a.mp3?filename=rain-ambient-10043.mp3'),
+      fire: new Audio('https://cdn.pixabay.com/download/audio/2021/09/28/audio_b79e2a38f1.mp3?filename=fireplace-fire-6371.mp3'),
+      forest: new Audio('https://cdn.pixabay.com/download/audio/2022/05/08/audio_1e11992bb4.mp3?filename=forest-birds-10817.mp3'),
+      flight: new Audio('https://cdn.pixabay.com/download/audio/2022/10/13/audio_169a1d6473.mp3?filename=airplane-cabin-ambient-110489.mp3'),
+      waves: new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_24f5bbac54.mp3?filename=ocean-waves-6978.mp3')
+    };
+
+    // Set all sounds to loop
+    Object.values(sounds).forEach(audio => {
+      audio.loop = true;
+      audio.volume = 0.4; // soft volume
+    });
+
+    let currentSound = null;
+
+    function stopAllSounds() {
+      Object.values(sounds).forEach(audio => {
+        audio.pause();
+        audio.currentTime = 0;
+      });
+      currentSound = null;
+      document.querySelectorAll('.music-player button').forEach(btn => btn.classList.remove('active'));
+    }
+
+    document.getElementById('musicPlayer').addEventListener('click', (e) => {
+      if (e.target.tagName !== 'BUTTON') return;
+
+      const soundName = e.target.getAttribute('data-sound');
+      if (!soundName) return;
+
+      // If clicked the currently playing sound - stop it
+      if (currentSound === soundName) {
+        sounds[soundName].pause();
+        currentSound = null;
+        e.target.classList.remove('active');
+      } else {
+        // Stop all other sounds
+        stopAllSounds();
+
+        // Play selected sound
+        sounds[soundName].play();
+        currentSound = soundName;
+
+        // Highlight active button
+        document.querySelectorAll('.music-player button').forEach(btn => btn.classList.remove('active'));
+        e.target.classList.add('active');
+      }
+    });
+
+    function loadSettings() {
+  focusTime = parseInt(localStorage.getItem("focusMinutes")) || 25;
+  shortBreakTime = parseInt(localStorage.getItem("shortMinutes")) || 5;
+  longBreakTime = parseInt(localStorage.getItem("longMinutes")) || 15;
+  soundEnabled = localStorage.getItem("soundAlert") === "true";
+  autoStartNext = localStorage.getItem("autoStartNext") === "true";
+}
+
+    // STEP 1: Load saved settings when page loads
+window.onload = function () {
+  loadSettings();   // Load time/sound settings from localStorage
+  updateDisplay();  // Display the correct initial timer value
+  updateGoalProgress();
+};
+
+  </script>
+</body>
+</html>
