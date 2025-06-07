@@ -40,16 +40,36 @@
       font-size: 12px;
     }
 
+    body, .modal {
+  opacity: 1;
+}
+
     .modal {
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background-color: rgba(0,0,0,0.5); display: none;
-      justify-content: center; align-items: center; z-index: 1000;
-    }
-    .modal-content {
-      background: #fff; padding: 20px; border-radius: 8px;
-      width: 90%; max-width: 700px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    }
+  background-color: rgba(0, 0, 0, 0.5); /* keeps the dark overlay */
+  display: none;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #fff; /* ensures content is fully opaque */
+  border-radius: 10px;
+  padding: 20px;
+  width: 90%;
+  max-width: 700px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+body.modal-open {
+  overflow: hidden; /* disables background scroll */
+}
+
+
     table {
       width: 100%; border-collapse: collapse; margin-bottom: 20px;
     }
@@ -194,6 +214,7 @@
     function openModal(index) {
       currentExamIndex = index;
       subjectRows.innerHTML = '';
+      document.body.classList.add('modal-open'); // Disable background scroll
       const today = new Date().toISOString().split('T')[0];
       const key = `exam_progress_${index}`;
       const savedData = JSON.parse(localStorage.getItem(key)) || {};
@@ -202,26 +223,32 @@
         todayProgress.split(';').map(s => {
           const [subj, ...rest] = s.trim().split(':');
           return [subj?.trim(), rest.join(':').trim()];
+           
         }).filter(Boolean)
+        
       );
 
       subjects.forEach((subj, i) => {
         const savedTask = existingEntries[subj];
-        if (savedTask) {
+       if (savedTask) {
+  subjectRows.innerHTML += `
+    <tr id="row_${i}">
+      <td>${subj}</td>
+      <td>
+        <span id="task_done_${i}" style="color: green; font-weight: bold;">✅ ${savedTask}</span><br>
+        <button onclick="editSubject(${i}, '${subj}')" style="margin-top: 5px; padding: 5px 10px; font-size: 12px;">✏️ Edit Again</button>
+      </td>
+    </tr>
+  `;
+}
+else {
           subjectRows.innerHTML += `
             <tr id="row_${i}">
               <td>${subj}</td>
               <td>
-                <span id="task_done_${i}" style="color: green; font-weight: bold;">✅ Task Completed</span>
-                <button onclick="editSubject(${i}, '${subj}')" style="margin-left: 10px; padding: 5px 10px; font-size: 12px;">✏️ Edit Again</button>
-              </td>
-            </tr>
-          `;
-        } else {
-          subjectRows.innerHTML += `
-            <tr id="row_${i}">
-              <td>${subj}</td>
-              <td><input type="text" id="task_${i}" placeholder="Write progress..."></td>
+  <input type="text" id="task_${i}" placeholder="Write task..."><br>
+  <input type="text" id="time_${i}" placeholder="Time spent (e.g. 1.5 hrs)" style="margin-top: 5px; width: 90%;">
+</td>
             </tr>
           `;
         }
@@ -232,19 +259,25 @@
 
     function closeModal() {
       modal.style.display = 'none';
+      document.body.classList.remove('modal-open'); // Enable background scroll
       currentExamIndex = null;
     }
 
     function collectModalInput() {
-      let combinedProgress = '';
-      subjects.forEach((subj, i) => {
-        const task = document.getElementById(`task_${i}`)?.value.trim();
-        if (task) {
-          combinedProgress += `${subj}: ${task}; `;
-        }
-      });
-      return combinedProgress.trim();
+  let combinedProgress = '';
+  subjects.forEach((subj, i) => {
+    const task = document.getElementById(`task_${i}`)?.value.trim();
+    const time = document.getElementById(`time_${i}`)?.value.trim();
+    if (task || time) {
+      let entry = `${subj}:`;
+      if (task) entry += ` Task - ${task}`;
+      if (time) entry += ` | Time - ${time}`;
+      combinedProgress += entry + '; ';
     }
+  });
+  return combinedProgress.trim();
+}
+
 
    function saveModalProgress() {
   if (currentExamIndex === null) return;
@@ -261,6 +294,7 @@
     if (subj && rest.length > 0) {
       existing[subj.trim()] = rest.join(':').trim();
     }
+    
   });
 
   // Get updated input
@@ -356,13 +390,17 @@
       toggleDeleteList(index);
     }
 
-    function editSubject(index, subjectName) {
-      const row = document.getElementById(`row_${index}`);
-      row.innerHTML = `
-        <td>${subjectName}</td>
-        <td><input type="text" id="task_${index}" placeholder="Write progress..."></td>
-      `;
-    }
+   function editSubject(index, subjectName) {
+  const row = document.getElementById(`row_${index}`);
+  row.innerHTML = `
+    <td>${subjectName}</td>
+    <td>
+      <input type="text" id="task_${index}" placeholder="Write task..."><br>
+      <input type="text" id="time_${index}" placeholder="Time spent (e.g. 1 hr)" style="margin-top: 5px; width: 90%;">
+    </td>
+  `;
+}
+
 
    
   </script>
