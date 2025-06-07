@@ -246,34 +246,77 @@
       return combinedProgress.trim();
     }
 
-    function saveModalProgress() {
-      if (currentExamIndex === null) return;
-      const today = new Date().toISOString().split('T')[0];
-      const combinedProgress = collectModalInput();
-      if (!combinedProgress) return alert("Please enter at least one subject's progress.");
+   function saveModalProgress() {
+  if (currentExamIndex === null) return;
 
-      const key = `exam_progress_${currentExamIndex}`;
-      let allProgress = JSON.parse(localStorage.getItem(key)) || {};
-      allProgress[today] = combinedProgress;
-      localStorage.setItem(key, JSON.stringify(allProgress));
-      alert("✅ Progress saved!");
-      closeModal();
+  const today = new Date().toISOString().split('T')[0];
+  const key = `exam_progress_${currentExamIndex}`;
+  let allProgress = JSON.parse(localStorage.getItem(key)) || {};
+  let todayProgress = allProgress[today] || '';
+
+  // Convert today's saved progress to object
+  let existing = {};
+  todayProgress.split(';').forEach(entry => {
+    const [subj, ...rest] = entry.trim().split(':');
+    if (subj && rest.length > 0) {
+      existing[subj.trim()] = rest.join(':').trim();
     }
+  });
 
-    function saveProgressForAllExams() {
-      const today = new Date().toISOString().split('T')[0];
-      const combinedProgress = collectModalInput();
-      if (!combinedProgress) return alert("Please enter at least one subject's progress.");
-
-      exams.forEach((exam, idx) => {
-        const key = `exam_progress_${idx}`;
-        let allProgress = JSON.parse(localStorage.getItem(key)) || {};
-        allProgress[today] = combinedProgress;
-        localStorage.setItem(key, JSON.stringify(allProgress));
-      });
-      alert("✅ Same progress saved for all exams!");
-      closeModal();
+  // Get updated input
+  subjects.forEach((subj, i) => {
+    const task = document.getElementById(`task_${i}`)?.value.trim();
+    if (task) {
+      existing[subj] = task;  // ✅ update or add
     }
+  });
+
+  // Convert back to string
+  let combined = Object.entries(existing).map(([k, v]) => `${k}: ${v}`).join('; ');
+  allProgress[today] = combined;
+
+  localStorage.setItem(key, JSON.stringify(allProgress));
+  alert("✅ Progress saved!");
+  closeModal();
+}
+
+   function saveProgressForAllExams() {
+  const today = new Date().toISOString().split('T')[0];
+  const newProgress = collectModalInput();
+  if (!newProgress) return alert("Please enter at least one subject's progress.");
+
+  let inputObj = {};
+  newProgress.split(';').forEach(entry => {
+    const [subj, ...rest] = entry.trim().split(':');
+    if (subj && rest.length > 0) {
+      inputObj[subj.trim()] = rest.join(':').trim();
+    }
+  });
+
+  exams.forEach((exam, idx) => {
+    const key = `exam_progress_${idx}`;
+    let allProgress = JSON.parse(localStorage.getItem(key)) || {};
+    let existingStr = allProgress[today] || '';
+    let existing = {};
+
+    existingStr.split(';').forEach(entry => {
+      const [subj, ...rest] = entry.trim().split(':');
+      if (subj && rest.length > 0) {
+        existing[subj.trim()] = rest.join(':').trim();
+      }
+    });
+
+    // Merge
+    const merged = { ...existing, ...inputObj };
+    let finalStr = Object.entries(merged).map(([k, v]) => `${k}: ${v}`).join('; ');
+    allProgress[today] = finalStr;
+    localStorage.setItem(key, JSON.stringify(allProgress));
+  });
+
+  alert("✅ Same progress saved for all exams!");
+  closeModal();
+}
+
 
     function toggleDeleteList(index) {
       const container = document.getElementById(`deleteList${index}`);
