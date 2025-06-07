@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Progress Summary</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body { font-family: Arial; background: #f0f3f7; padding: 20px; }
     h1 { text-align: center; color: #34495e; }
@@ -110,6 +111,12 @@
   }
 }
 
+.total-hours {
+  font-weight: bold;
+  color: green;
+  margin-top: 10px;
+}
+
   </style>
 </head>
 <body>
@@ -211,7 +218,37 @@
           });
         });
 
+
+        // Calculate total hours
+let totalHours = 0;
+sortedDates.forEach(date => {
+  const progressStr = data[date];
+  const entries = progressStr.split(';').map(e => e.trim()).filter(Boolean);
+  
+  entries.forEach(entry => {
+   const timeRegex = /\(?([\d.]+)\)?\s*(hrs?|hours?)?$/i;
+const timeMatch = entry.match(timeRegex);
+
+if (timeMatch) {
+  const hours = parseFloat(timeMatch[1]);
+  if (!isNaN(hours)) totalHours += hours;
+}
+
+  });
+});
+
+// Add total hours below table
+const totalHoursDiv = document.createElement('div');
+totalHoursDiv.style.marginTop = "10px";
+totalHoursDiv.style.fontWeight = "bold";
+totalHoursDiv.style.color = "#27ae60";
+totalHoursDiv.textContent = `🕒 Total Study Hours: ${totalHours.toFixed(2)} hrs`;
+section.appendChild(totalHoursDiv);
+
+
+
         section.appendChild(table);
+        section.appendChild(totalHoursDiv);  // newly added
         container.appendChild(section);
       }
     });
@@ -248,43 +285,129 @@
       return grouped;
     }
 
+    // function generatePDF(title, dataGroups) {
+    //   const doc = new jsPDF();
+    //   let y = 10;
+    //   doc.setFontSize(18);
+    //   doc.text(title, 10, y);
+    //   y += 10;
+    //   doc.setFontSize(12);
+
+    //   Object.keys(dataGroups).forEach(groupKey => {
+    //     y += 10;
+    //     doc.setFontSize(14);
+    //     doc.text(groupKey, 10, y);
+    //     y += 8;
+    //     doc.setFontSize(12);
+    //     doc.text("Exam", 10, y);
+    //     doc.text("Date", 50, y);
+    //     doc.text("Subject", 90, y);
+    //     doc.text("Progress", 130, y);
+    //     y += 6;
+    //     doc.line(10, y, 200, y);
+    //     y += 4;
+
+    //     dataGroups[groupKey].forEach(item => {
+    //       if (y > 280) {
+    //         doc.addPage(); y = 10;
+    //       }
+    //       doc.text(item.exam, 10, y);
+    //       doc.text(item.date, 50, y);
+    //       doc.text(item.subject, 90, y);
+    //       const splitText = doc.splitTextToSize(item.progress, 60);
+    //       doc.text(splitText, 130, y);
+    //       y += splitText.length * 6;
+    //     });
+    //   });
+
+    //   doc.save(`${title.replace(/\s+/g, '_')}.pdf`);
+    // }
+
     function generatePDF(title, dataGroups) {
-      const doc = new jsPDF();
-      let y = 10;
-      doc.setFontSize(18);
-      doc.text(title, 10, y);
-      y += 10;
-      doc.setFontSize(12);
+  const doc = new jsPDF();
+  let y = 10;
+  const pageHeight = 280;
+  const marginLefts = { exam: 10, date: 50, subject: 90, progress: 130, total: 10 };
 
-      Object.keys(dataGroups).forEach(groupKey => {
-        y += 10;
-        doc.setFontSize(14);
-        doc.text(groupKey, 10, y);
-        y += 8;
-        doc.setFontSize(12);
-        doc.text("Exam", 10, y);
-        doc.text("Date", 50, y);
-        doc.text("Subject", 90, y);
-        doc.text("Progress", 130, y);
-        y += 6;
-        doc.line(10, y, 200, y);
-        y += 4;
+  doc.setFontSize(18);
+  doc.text(title, marginLefts.exam, y);
+  y += 12;
 
-        dataGroups[groupKey].forEach(item => {
-          if (y > 280) {
-            doc.addPage(); y = 10;
-          }
-          doc.text(item.exam, 10, y);
-          doc.text(item.date, 50, y);
-          doc.text(item.subject, 90, y);
-          const splitText = doc.splitTextToSize(item.progress, 60);
-          doc.text(splitText, 130, y);
-          y += splitText.length * 6;
-        });
-      });
-
-      doc.save(`${title.replace(/\s+/g, '_')}.pdf`);
+  Object.keys(dataGroups).forEach(groupKey => {
+    if (y > pageHeight - 60) {  // new page if near bottom
+      doc.addPage();
+      y = 10;
     }
+
+    doc.setFontSize(14);
+    doc.text(groupKey, marginLefts.exam, y);
+    y += 8;
+
+    // Table headers
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("Exam", marginLefts.exam, y);
+    doc.text("Date", marginLefts.date, y);
+    doc.text("Subject", marginLefts.subject, y);
+    doc.text("Progress", marginLefts.progress, y);
+    y += 6;
+
+    doc.setDrawColor(0);
+    doc.setLineWidth(0.5);
+    doc.line(marginLefts.exam, y, 200, y);
+    y += 6;
+
+    doc.setFont("helvetica", "normal");
+
+    // Calculate total hours for this group
+    let totalHours = 0;
+
+    dataGroups[groupKey].forEach(item => {
+      if (y > pageHeight - 40) {
+        doc.addPage();
+        y = 10;
+      }
+
+      doc.text(item.exam, marginLefts.exam, y);
+      doc.text(item.date, marginLefts.date, y);
+      doc.text(item.subject, marginLefts.subject, y);
+
+      // Split long progress text into multiple lines if needed
+      const splitText = doc.splitTextToSize(item.progress, 60);
+      doc.text(splitText, marginLefts.progress, y);
+
+      y += splitText.length * 6;
+
+      // Extract hours from progress text for total calculation
+      const timeRegex = /\(?([\d.]+)\)?\s*(hrs?|hours?)?$/i;
+      const timeMatch = item.progress.match(timeRegex);
+      if (timeMatch) {
+        const hours = parseFloat(timeMatch[1]);
+        if (!isNaN(hours)) totalHours += hours;
+      }
+    });
+
+    // Draw line before total row
+    if (y > pageHeight - 30) {
+      doc.addPage();
+      y = 10;
+    }
+    doc.setDrawColor(0);
+    doc.setLineWidth(0.5);
+    doc.line(marginLefts.exam, y, 200, y);
+    y += 6;
+
+    // Print total hours row
+    doc.setFont("helvetica", "bold");
+    doc.text(`Total Study Hours: ${totalHours.toFixed(2)} hr`, marginLefts.total, y);
+    y += 14;
+
+    doc.setFont("helvetica", "normal");
+  });
+
+  // Save the file
+  doc.save(`${title.replace(/\s+/g, '_')}.pdf`);
+}
 
     function getSelectedExams() {
       const checked = document.querySelectorAll('.exam-checkbox:checked');
@@ -383,6 +506,8 @@ function checkForOldData() {
 
 // Call this after data loading
 checkForOldData();
+
+
 
   </script>
 </body>
