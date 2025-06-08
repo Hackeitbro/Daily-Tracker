@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -278,8 +279,7 @@ else {
   return combinedProgress.trim();
 }
 
-
-   function saveModalProgress() {
+function saveModalProgress() {
   if (currentExamIndex === null) return;
 
   const today = new Date().toISOString().split('T')[0];
@@ -287,25 +287,28 @@ else {
   let allProgress = JSON.parse(localStorage.getItem(key)) || {};
   let todayProgress = allProgress[today] || '';
 
-  // Convert today's saved progress to object
+  // Parse existing progress to object
   let existing = {};
   todayProgress.split(';').forEach(entry => {
     const [subj, ...rest] = entry.trim().split(':');
     if (subj && rest.length > 0) {
       existing[subj.trim()] = rest.join(':').trim();
     }
-    
   });
 
-  // Get updated input
+  // Update with current modal inputs: save task and time
   subjects.forEach((subj, i) => {
     const task = document.getElementById(`task_${i}`)?.value.trim();
-    if (task) {
-      existing[subj] = task;  // ✅ update or add
+    const time = document.getElementById(`time_${i}`)?.value.trim();
+    if (task || time) {
+      let entry = '';
+      if (task) entry += `Task - ${task}`;
+      if (time) entry += (entry ? ' | ' : '') + `Time - ${time}`;
+      existing[subj] = entry;
     }
   });
 
-  // Convert back to string
+  // Convert back to string for storage
   let combined = Object.entries(existing).map(([k, v]) => `${k}: ${v}`).join('; ');
   allProgress[today] = combined;
 
@@ -313,6 +316,7 @@ else {
   alert("✅ Progress saved!");
   closeModal();
 }
+
 
    function saveProgressForAllExams() {
   const today = new Date().toISOString().split('T')[0];
