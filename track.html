@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CDS 2025 - Advanced Study Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.2rem;
+            margin: 5px 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transform: translateY(0);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-box:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .filter-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .filter-btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+
+        .filter-btn.active {
+            background: #764ba2;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .day-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .day-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .day-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .day-card.completed {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+        }
+
+        .day-card.partial {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        }
+
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .day-number {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .day-date {
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .day-progress {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: conic-gradient(#667eea 0deg, #667eea var(--progress), #e0e0e0 var(--progress), #e0e0e0 360deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #333;
+            position: relative;
+        }
+
+        .day-progress::after {
+            content: '';
+            position: absolute;
+            width: 35px;
+            height: 35px;
+            background: white;
+            border-radius: 50%;
+            z-index: -1;
+        }
+
+        .topic-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            margin: 10px 0;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .topic-item:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: translateX(5px);
+        }
+
+        .topic-item.english {
+            border-left-color: #ff6b6b;
+        }
+
+        .topic-item.gk {
+            border-left-color: #4ecdc4;
+        }
+
+        .topic-item.revision {
+            border-left-color: #45b7d1;
+        }
+
+        .topic-content {
+            flex: 1;
+        }
+
+        .topic-subject {
+            font-size: 0.8rem;
+            color: #888;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .topic-name {
+            font-size: 1rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .custom-checkbox {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    margin-left: 15px;
+    cursor: pointer;
+}
+
+       .custom-checkbox input {
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    position: absolute;
+    z-index: 2;
+}
+
+       .checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 24px;
+    width: 24px;
+    background: #e0e0e0;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    z-index: 1;
+}
+
+.custom-checkbox input:checked ~ .checkmark {
+    background: #667eea !important;
+}
+
+       .checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+    left: 8px;
+    top: 4px;
+    width: 6px;
+    height: 12px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+        .custom-checkbox input:checked ~ .checkmark:after {
+    display: block !important;
+}
+        
+/* Fix for progress circle */
+.day-progress {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: conic-gradient(#667eea 0deg, #667eea var(--progress, 0deg), #e0e0e0 var(--progress, 0deg), #e0e0e0 360deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #333;
+    position: relative;
+    font-size: 0.8rem;
+}
+
+.day-progress::after {
+    content: '';
+    position: absolute;
+    width: 35px;
+    height: 35px;
+    background: white;
+    border-radius: 50%;
+    z-index: -1;
+}
+
+/* Enhanced card states */
+.day-card.completed {
+    background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%) !important;
+    border-left: 4px solid #4ecdc4 !important;
+}
+
+.day-card.partial {
+    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%) !important;
+    border-left: 4px solid #ff9a56 !important;
+}
+        .custom-checkbox .checkmark:after {
+            left: 8px;
+            top: 4px;
+            width: 6px;
+            height: 12px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .special-day {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+        }
+
+        .exam-day {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        }
+
+        .motivational-quote {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .quote-text {
+            font-size: 1.2rem;
+            font-style: italic;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .quote-author {
+            font-size: 0.9rem;
+            color: #888;
+            font-weight: 600;
+        }
+
+        /* Add this CSS for the delete button */
+.delete-btn {
+    background: #dc3545 !important;
+    margin-left: auto;
+}
+
+.delete-btn:hover {
+    background: #c82333 !important;
+    transform: translateY(-2px);
+}
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .calendar-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header fade-in">
+            <h1>🎯 CDS 2025 Study Tracker</h1>
+            <p><strong>94 Days Journey</strong> | June 13, 2025 → September 14, 2025</p>
+            <p>📚 Daily English + 2 GK Subjects | 🎯 Last 10 Days: Revision + Mock Tests</p>
+        </div>
+
+        <div class="stats-grid fade-in">
+            <div class="stat-card">
+                <div class="stat-number" id="totalDays">94</div>
+                <div class="stat-label">Total Days</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="completedDays">0</div>
+                <div class="stat-label">Completed Days</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="remainingDays">94</div>
+                <div class="stat-label">Days Remaining</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="progressPercent">0%</div>
+                <div class="stat-label">Progress</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="completedTopics">0</div>
+                <div class="stat-label">Topics Completed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="currentStreak">0</div>
+                <div class="stat-label">Current Streak</div>
+            </div>
+        </div>
+
+       <div class="controls fade-in">
+    <input type="text" class="search-box" id="searchBox" placeholder="🔍 Search topics or subjects...">
+    <button class="filter-btn active" onclick="filterDays('all')">All Days</button>
+    <button class="filter-btn" onclick="filterDays('pending')">Pending</button>
+    <button class="filter-btn" onclick="filterDays('completed')">Completed</button>
+    <button class="filter-btn" onclick="filterDays('revision')">Revision</button>
+    <button class="filter-btn delete-btn" onclick="deleteAllProgress()" title="Delete all progress">
+        🗑️ Reset All
+    </button>
+</div>
+
+        <div class="calendar-grid" id="calendar"></div>
+
+        <div class="motivational-quote fade-in">
+            <div class="quote-text" id="quoteText">"Success is the sum of small efforts, repeated day in and day out."</div>
+            <div class="quote-author" id="quoteAuthor">- Robert Collier</div>
+        </div>
+    </div>
+
+    <script>
+        const startDate = new Date("2025-06-13");
+        const totalDays = 94;
+        let completedTopics = new Set();
+        let dailyProgress = {};
+
+        const englishTopics = [
+            "Reading Comprehension", "Spotting Errors", "Fill in the Blanks", "Ordering of Sentences",
+            "Sentence Improvement", "Synonyms & Antonyms", "Idioms & Phrases", "Cloze Test"
+        ];
+
+        const gkSubjects = {
+            "Polity": [
+                "Making of Constitution", "Citizenship", "President", "Governor", "Vice President", "Prime Minister",
+                "Chief Minister", "Parliament", "Fundamental Rights", "Fundamental Duties", "DPSP",
+                "Salient Features", "High Court & Supreme Court", "Election Commission", "Panchayati Raj"
+            ],
+            "Geography": [
+                "Universe", "Latitude", "Earth", "Rocks", "Oceanography", "Climatology", "Landforms",
+                "Physical Divisions", "Rivers", "Transport System", "Soil", "Vegetation of India",
+                "Crops", "Indian Climate"
+            ],
+            "Biology": [
+                "Cell & Blood", "Tissue", "Life Process", "Reproduction", "Control & Coordination",
+                "Biodiversity", "Diseases"
+            ],
+            "Chemistry": [
+                "Acid, Base & Salts", "Metals & Non-Metals", "Chemical Reaction & Equation",
+                "Carbon Compounds + Soap", "Atom & Molecules", "Periodic Classification of Elements"
+            ],
+            "Economy": [
+                "National Income", "Money", "Poverty and Inequality", "Unemployment", "Banking System",
+                "Inflation", "Budget", "Taxation", "Law of Demand"
+            ],
+            "Physics": [
+                "Units and Measurements", "Motion", "Sound", "Waves", "Gravitation",
+                "Reflection of Light", "Mirror & Lens", "Electricity", "Magnetism", "Work Power and Energy"
+            ]
+        };
+
+        const finalRevisionDays = [
+            "Full Revision: Polity + Mock Test",
+            "Full Revision: Geography + Mock Test",
+            "Full Revision: Physics + Mock Test",
+            "Full Revision: Chemistry + Mock Test",
+            "Full Revision: Biology + Mock Test",
+            "Full Revision: Economy + Mock Test",
+            "Full Revision: English + GK Mixed",
+            "Mock Test 1: English + GK",
+            "Mock Test 2: English + GK",
+            "Mock Test 3: Final Full-Length Paper"
+        ];
+
+        const motivationalQuotes = [
+            { text: "Success is the sum of small efforts, repeated day in and day out.", author: "Robert Collier" },
+            { text: "The expert in anything was once a beginner.", author: "Helen Hayes" },
+            { text: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
+            { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
+            { text: "The future belongs to those who believe in the beauty of their dreams.", author: "Eleanor Roosevelt" }
+        ];
+
+        // Create GK topic pairs
+        const gkTopicPairs = [];
+        const topicQueue = [];
+        for (let subject in gkSubjects) {
+            for (let topic of gkSubjects[subject]) {
+                topicQueue.push({ subject, topic });
+            }
+        }
+
+        let usedIndices = new Set();
+        for (let i = 0; i < topicQueue.length; i++) {
+            if (usedIndices.has(i)) continue;
+            let topic1 = topicQueue[i];
+            for (let j = i + 1; j < topicQueue.length; j++) {
+                if (usedIndices.has(j)) continue;
+                if (topicQueue[j].subject !== topic1.subject) {
+                    gkTopicPairs.push([topic1, topicQueue[j]]);
+                    usedIndices.add(i);
+                    usedIndices.add(j);
+                    break;
+                }
+            }
+        }
+
+        function createDayCard(dayIndex) {
+            const day = new Date(startDate);
+            day.setDate(day.getDate() + dayIndex);
+            const formattedDate = day.toLocaleDateString('en-GB', { 
+                weekday: 'short', 
+                day: '2-digit', 
+                month: 'short' 
+            });
+
+            const dayCard = document.createElement("div");
+            dayCard.className = "day-card fade-in";
+            dayCard.style.animationDelay = `${dayIndex * 0.05}s`;
+
+            let content = '';
+            let cardClass = '';
+            let topics = [];
+
+            if (dayIndex === 92) {
+                cardClass = 'special-day';
+                content = `
+                    <div class="day-header">
+                        <div>
+                            <div class="day-number">Day ${dayIndex + 1}</div>
+                            <div class="day-date">${formattedDate}</div>
+                        </div>
+                        <div class="day-progress" style="--progress: 360deg;">
+                            😌
+                        </div>
+                    </div>
+                    <div class="topic-item special">
+                        <div class="topic-content">
+                            <div class="topic-subject">SPECIAL</div>
+                            <div class="topic-name">Rest Day - Relax & Recharge</div>
+                        </div>
+                    </div>
+                `;
+            } else if (dayIndex === 93) {
+                cardClass = 'exam-day pulse';
+                content = `
+                    <div class="day-header">
+                        <div>
+                            <div class="day-number">Day ${dayIndex + 1}</div>
+                            <div class="day-date">${formattedDate}</div>
+                        </div>
+                        <div class="day-progress" style="--progress: 360deg;">
+                            🎯
+                        </div>
+                    </div>
+                    <div class="topic-item exam">
+                        <div class="topic-content">
+                            <div class="topic-subject">EXAM DAY</div>
+                            <div class="topic-name">CDS 2 2025 - All the Best! 🚀</div>
+                        </div>
+                    </div>
+                `;
+            } else if (dayIndex >= totalDays - 12) {
+                const task = finalRevisionDays[dayIndex - (totalDays - 12)];
+                topics = [`revision-${dayIndex}`];
+                content = `
+                    <div class="day-header">
+                        <div>
+                            <div class="day-number">Day ${dayIndex + 1}</div>
+                            <div class="day-date">${formattedDate}</div>
+                        </div>
+                        <div class="day-progress" id="progress-${dayIndex}" style="--progress: 0deg;">
+                            0%
+                        </div>
+                    </div>
+                    <div class="topic-item revision">
+                        <div class="topic-content">
+                            <div class="topic-subject">REVISION</div>
+                            <div class="topic-name">${task}</div>
+                        </div>
+                        <div class="custom-checkbox">
+                           <input type="checkbox" id="topic-revision-${dayIndex}" onchange="updateProgress(${dayIndex}, this.id)">
+                            <span class="checkmark"></span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                const engTopic = englishTopics[dayIndex % englishTopics.length];
+                const gkPair = gkTopicPairs[dayIndex % gkTopicPairs.length];
+                topics = [`eng-${dayIndex}`, `gk1-${dayIndex}`, `gk2-${dayIndex}`];
+                
+                content = `
+                    <div class="day-header">
+                        <div>
+                            <div class="day-number">Day ${dayIndex + 1}</div>
+                            <div class="day-date">${formattedDate}</div>
+                        </div>
+                        <div class="day-progress" id="progress-${dayIndex}" style="--progress: 0deg;">
+                            0%
+                        </div>
+                    </div>
+                    <div class="topic-item english">
+                        <div class="topic-content">
+                            <div class="topic-subject">ENGLISH</div>
+                            <div class="topic-name">${engTopic}</div>
+                        </div>
+                        <div class="custom-checkbox">
+                            <input type="checkbox" id="topic-eng-${dayIndex}" onchange="updateProgress(${dayIndex}, this.id)">
+                            <span class="checkmark"></span>
+                        </div>
+                    </div>
+                    <div class="topic-item gk">
+                        <div class="topic-content">
+                            <div class="topic-subject">${gkPair[0].subject.toUpperCase()}</div>
+                            <div class="topic-name">${gkPair[0].topic}</div>
+                        </div>
+                        <div class="custom-checkbox">
+                           <input type="checkbox" id="topic-gk1-${dayIndex}" onchange="updateProgress(${dayIndex}, this.id)">
+                            <span class="checkmark"></span>
+                        </div>
+                    </div>
+                    <div class="topic-item gk">
+                        <div class="topic-content">
+                            <div class="topic-subject">${gkPair[1].subject.toUpperCase()}</div>
+                            <div class="topic-name">${gkPair[1].topic}</div>
+                        </div>
+                        <div class="custom-checkbox">
+                           <input type="checkbox" id="topic-gk2-${dayIndex}" onchange="updateProgress(${dayIndex}, this.id)">
+                            <span class="checkmark"></span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            dayCard.innerHTML = content;
+            dayCard.className += ` ${cardClass}`;
+            dayCard.dataset.day = dayIndex;
+            dayCard.dataset.topics = topics.join(',');
+            
+            return dayCard;
+        }
+
+      // Replace your updateProgress function with this version that includes auto-save:
+
+function updateProgress(dayIndex, checkboxId) {
+    const checkbox = document.getElementById(checkboxId);
+    const progressCircle = document.getElementById(`progress-${dayIndex}`);
+    const dayCard = document.querySelector(`[data-day="${dayIndex}"]`);
+
+    if (!checkbox) {
+        console.error(`Checkbox not found for ${checkboxId}`);
+        return;
+    }
+
+    // Extract the topic ID from the checkbox ID (remove 'topic-' prefix)
+    const topicId = checkboxId.replace('topic-', '');
+
+    if (!dailyProgress[dayIndex]) {
+        dailyProgress[dayIndex] = {};
+    }
+
+    dailyProgress[dayIndex][topicId] = checkbox.checked;
+
+    if (checkbox.checked) {
+        completedTopics.add(topicId);
+    } else {
+        completedTopics.delete(topicId);
+    }
+
+    // Calculate day progress
+    const topics = dayCard.dataset.topics.split(',').filter(t => t);
+    const completedCount = topics.filter(topic =>
+        dailyProgress[dayIndex] && dailyProgress[dayIndex][topic]
+    ).length;
+
+    const percentage = topics.length > 0 ? Math.round((completedCount / topics.length) * 100) : 0;
+    const degrees = (percentage / 100) * 360;
+
+    if (progressCircle) {
+        progressCircle.style.setProperty('--progress', `${degrees}deg`);
+        progressCircle.textContent = `${percentage}%`;
+    }
+
+    // Update card appearance
+    dayCard.classList.remove('completed', 'partial');
+    if (percentage === 100) {
+        dayCard.classList.add('completed');
+    } else if (percentage > 0) {
+        dayCard.classList.add('partial');
+    }
+
+    forceVisualUpdate(dayIndex);
+    updateStats();
+    autoSave(); // Auto-save progress after each update
+}
+
+        function updateStats() {
+            const completedDays = Object.keys(dailyProgress).filter(day => {
+                const dayData = dailyProgress[day];
+                const dayCard = document.querySelector(`[data-day="${day}"]`);
+                const topics = dayCard ? dayCard.dataset.topics.split(',').filter(t => t) : [];
+                return topics.length > 0 && topics.every(topic => dayData[topic]);
+            }).length;
+            
+            const remainingDays = totalDays - completedDays;
+            const progressPercent = Math.round((completedDays / totalDays) * 100);
+            
+            document.getElementById('completedDays').textContent = completedDays;
+            document.getElementById('remainingDays').textContent = remainingDays;
+            document.getElementById('progressPercent').textContent = `${progressPercent}%`;
+            document.getElementById('completedTopics').textContent = completedTopics.size;
+            
+            // Calculate streak
+            let currentStreak = 0;
+            for (let i = 0; i < totalDays; i++) {
+                const dayCard = document.querySelector(`[data-day="${i}"]`);
+                if (dayCard && dayCard.classList.contains('completed')) {
+                    currentStreak++;
+                } else {
+                    break;
+                }
+            }
+            document.getElementById('currentStreak').textContent = currentStreak;
+        }
+
+        function filterDays(filter) {
+            const dayCards = document.querySelectorAll('.day-card');
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            
+            filterBtns.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            dayCards.forEach(card => {
+                card.style.display = 'block';
+                
+                switch(filter) {
+                    case 'pending':
+                        if (card.classList.contains('completed')) {
+                            card.style.display = 'none';
+                        }
+                        break;
+                    case 'completed':
+                        if (!card.classList.contains('completed')) {
+                            card.style.display = 'none';
+                        }
+                        break;
+                    case 'revision':
+                        if (!card.innerHTML.includes('REVISION')) {
+                            card.style.display = 'none';
+                        }
+                        break;
+                }
+            });
+        }
+
+        function searchTopics() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            const dayCards = document.querySelectorAll('.day-card');
+            
+            dayCards.forEach(card => {
+                const cardText = card.textContent.toLowerCase();
+                card.style.display = cardText.includes(searchTerm) ? 'block' : 'none';
+            });
+        }
+
+        function rotateQuote() {
+            const quote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+            document.getElementById('quoteText').textContent = `"${quote.text}"`;
+            document.getElementById('quoteAuthor').textContent = `- ${quote.author}`;
+        }
+
+        function loadCalendar() {
+            const calendar = document.getElementById('calendar');
+            
+            for (let i = 0; i < totalDays; i++) {
+                const dayCard = createDayCard(i);
+                calendar.appendChild(dayCard);
+            }
+            
+            updateStats();
+        }
+
+        // Event listeners
+        document.getElementById('searchBox').addEventListener('input', searchTopics);
+        
+        // Initialize
+        loadCalendar();
+        
+        // Rotate quotes every 10 seconds
+        setInterval(rotateQuote, 10000);
+        rotateQuote();
+
+
+        // Add this debugging function to your script section
+function debugCheckbox() {
+    console.log("=== DEBUGGING CHECKBOXES ===");
+    
+    // Check if checkboxes exist
+    const allCheckboxes = document.querySelectorAll('input[type="checkbox"]');
+    console.log("Total checkboxes found:", allCheckboxes.length);
+    
+    // Check first few checkboxes
+    for (let i = 0; i < Math.min(5, allCheckboxes.length); i++) {
+        const checkbox = allCheckboxes[i];
+        console.log(`Checkbox ${i}:`, {
+            id: checkbox.id,
+            onclick: checkbox.onclick,
+            onchange: checkbox.onchange,
+            hasEventListener: checkbox.hasAttribute('onchange')
+        });
+    }
+    
+    // Test clicking first checkbox
+    if (allCheckboxes.length > 0) {
+        console.log("Testing first checkbox click...");
+        allCheckboxes[0].click();
+    }
+}
+
+// Also add this improved updateProgress function with logging
+function updateProgress(dayIndex, checkboxId) {
+    console.log("updateProgress called with:", dayIndex, checkboxId);
+    
+    const checkbox = document.getElementById(checkboxId);
+    console.log("Checkbox found:", checkbox);
+    
+    if (!checkbox) {
+        console.error(`Checkbox not found for ${checkboxId}`);
+        return;
+    }
+    
+    console.log("Checkbox checked state:", checkbox.checked);
+    
+    const progressCircle = document.getElementById(`progress-${dayIndex}`);
+    const dayCard = document.querySelector(`[data-day="${dayIndex}"]`);
+    
+    console.log("Progress circle found:", !!progressCircle);
+    console.log("Day card found:", !!dayCard);
+
+    // Extract the topic ID from the checkbox ID (remove 'topic-' prefix)
+    const topicId = checkboxId.replace('topic-', '');
+    console.log("Topic ID:", topicId);
+
+    if (!dailyProgress[dayIndex]) {
+        dailyProgress[dayIndex] = {};
+    }
+
+    dailyProgress[dayIndex][topicId] = checkbox.checked;
+
+    if (checkbox.checked) {
+        completedTopics.add(topicId);
+        console.log("Topic added to completed");
+    } else {
+        completedTopics.delete(topicId);
+        console.log("Topic removed from completed");
+    }
+
+    // Calculate day progress
+    const topics = dayCard.dataset.topics.split(',').filter(t => t);
+    console.log("Topics for this day:", topics);
+    
+    const completedCount = topics.filter(topic =>
+        dailyProgress[dayIndex] && dailyProgress[dayIndex][topic]
+    ).length;
+    
+    console.log("Completed count:", completedCount);
+
+    const percentage = topics.length > 0 ? Math.round((completedCount / topics.length) * 100) : 0;
+    const degrees = (percentage / 100) * 360;
+    
+    console.log("Percentage:", percentage, "Degrees:", degrees);
+
+    if (progressCircle) {
+        progressCircle.style.setProperty('--progress', `${degrees}deg`);
+        progressCircle.textContent = `${percentage}%`;
+        console.log("Progress circle updated");
+    }
+
+    // Update card appearance
+    dayCard.classList.remove('completed', 'partial');
+    if (percentage === 100) {
+        dayCard.classList.add('completed');
+        console.log("Day marked as completed");
+    } else if (percentage > 0) {
+        dayCard.classList.add('partial');
+        console.log("Day marked as partial");
+    }
+
+    updateStats();
+    console.log("=== updateProgress completed ===");
+}
+
+// Call this function after the page loads to debug
+setTimeout(debugCheckbox, 2000);
+
+// Add this function to force visual updates
+function forceVisualUpdate(dayIndex) {
+    const progressCircle = document.getElementById(`progress-${dayIndex}`);
+    const dayCard = document.querySelector(`[data-day="${dayIndex}"]`);
+    
+    if (progressCircle) {
+        // Force reflow
+        progressCircle.style.display = 'none';
+        progressCircle.offsetHeight; // trigger reflow
+        progressCircle.style.display = 'flex';
+    }
+    
+    if (dayCard) {
+        // Force reflow for the card
+        dayCard.style.transform = 'translateY(1px)';
+        setTimeout(() => {
+            dayCard.style.transform = '';
+        }, 10);
+    }
+}
+
+// Update your updateProgress function - add this line at the end:
+// Add this line just before "updateStats();" in your updateProgress function:
+forceVisualUpdate(dayIndex);
+
+// Add these functions to your script section
+
+// Save progress to localStorage
+function saveProgress() {
+    const progressData = {
+        dailyProgress: dailyProgress,
+        completedTopics: Array.from(completedTopics),
+        lastSaved: new Date().toISOString()
+    };
+    localStorage.setItem('cds2025Progress', JSON.stringify(progressData));
+    console.log('Progress saved to localStorage');
+}
+
+// Load progress from localStorage
+function loadProgress() {
+    const savedData = localStorage.getItem('cds2025Progress');
+    if (savedData) {
+        try {
+            const progressData = JSON.parse(savedData);
+            dailyProgress = progressData.dailyProgress || {};
+            completedTopics = new Set(progressData.completedTopics || []);
+            
+            // Restore checkbox states and visual updates
+            Object.keys(dailyProgress).forEach(dayIndex => {
+                const dayData = dailyProgress[dayIndex];
+                Object.keys(dayData).forEach(topicId => {
+                    const checkbox = document.getElementById(`topic-${topicId}`);
+                    if (checkbox) {
+                        checkbox.checked = dayData[topicId];
+                    }
+                });
+                
+                // Update visual progress for this day
+                updateDayVisuals(parseInt(dayIndex));
+            });
+            
+            updateStats();
+            console.log('Progress loaded from localStorage');
+            
+            // Show success message
+            showMessage('Progress loaded successfully!', 'success');
+        } catch (error) {
+            console.error('Error loading progress:', error);
+            showMessage('Error loading saved progress', 'error');
+        }
+    }
+}
+
+// Delete all progress
+function deleteAllProgress() {
+    if (confirm('⚠️ Are you sure you want to delete ALL progress? This cannot be undone!')) {
+        // Clear localStorage
+        localStorage.removeItem('cds2025Progress');
+        
+        // Reset variables
+        dailyProgress = {};
+        completedTopics = new Set();
+        
+        // Uncheck all checkboxes
+        const allCheckboxes = document.querySelectorAll('input[type="checkbox"]');
+        allCheckboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        
+        // Reset all day cards
+        const dayCards = document.querySelectorAll('.day-card');
+        dayCards.forEach(card => {
+            card.classList.remove('completed', 'partial');
+            const progressCircle = card.querySelector('.day-progress');
+            if (progressCircle) {
+                progressCircle.style.setProperty('--progress', '0deg');
+                progressCircle.textContent = '0%';
+            }
+        });
+        
+        updateStats();
+        showMessage('All progress deleted successfully!', 'success');
+        console.log('All progress deleted');
+    }
+}
+
+// Update visual elements for a specific day
+function updateDayVisuals(dayIndex) {
+    const dayCard = document.querySelector(`[data-day="${dayIndex}"]`);
+    const progressCircle = document.getElementById(`progress-${dayIndex}`);
+    
+    if (!dayCard) return;
+    
+    const topics = dayCard.dataset.topics.split(',').filter(t => t);
+    const completedCount = topics.filter(topic =>
+        dailyProgress[dayIndex] && dailyProgress[dayIndex][topic]
+    ).length;
+    
+    const percentage = topics.length > 0 ? Math.round((completedCount / topics.length) * 100) : 0;
+    const degrees = (percentage / 100) * 360;
+    
+    if (progressCircle) {
+        progressCircle.style.setProperty('--progress', `${degrees}deg`);
+        progressCircle.textContent = `${percentage}%`;
+    }
+    
+    // Update card appearance
+    dayCard.classList.remove('completed', 'partial');
+    if (percentage === 100) {
+        dayCard.classList.add('completed');
+    } else if (percentage > 0) {
+        dayCard.classList.add('partial');
+    }
+}
+
+// Show notification messages
+function showMessage(message, type = 'info') {
+    // Create message element
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `notification ${type}`;
+    messageDiv.textContent = message;
+    messageDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        z-index: 1000;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.3s ease;
+        ${type === 'success' ? 'background: #4CAF50;' : 
+          type === 'error' ? 'background: #f44336;' : 'background: #2196F3;'}
+    `;
+    
+    document.body.appendChild(messageDiv);
+    
+    // Animate in
+    setTimeout(() => {
+        messageDiv.style.opacity = '1';
+        messageDiv.style.transform = 'translateX(0)';
+    }, 10);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        messageDiv.style.opacity = '0';
+        messageDiv.style.transform = 'translateX(100%)';
+        setTimeout(() => messageDiv.remove(), 300);
+    }, 3000);
+}
+
+// Auto-save progress (call this in your updateProgress function)
+function autoSave() {
+    saveProgress();
+}
+
+// Modified updateProgress function - add this line at the very end:
+// Add autoSave(); right after updateStats(); in your updateProgress function
+
+// Initialize on page load - add this to your existing initialization
+document.addEventListener('DOMContentLoaded', function() {
+    // Your existing initialization code here
+    
+    // Load saved progress after calendar is created
+    setTimeout(() => {
+        loadProgress();
+    }, 500);
+    
+    // Auto-save every 30 seconds
+    setInterval(saveProgress, 30000);
+});
+
+// Add this to your existing updateProgress function at the very end:
+// autoSave();
+    </script>
+</body>
+</html>
