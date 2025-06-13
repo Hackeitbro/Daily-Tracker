@@ -543,37 +543,158 @@
             achievements: []
         };
 
-        // Generate topic pairs for GK subjects
-        function generateTopicPairs() {
-            const gkSubjects = Object.keys(subjects).filter(s => s !== 'english');
-            const topicQueue = [];
+        // // Generate topic pairs for GK subjects
+        // function generateTopicPairs() {
+        //     const gkSubjects = Object.keys(subjects).filter(s => s !== 'english');
+        //     const topicQueue = [];
             
-            gkSubjects.forEach(subject => {
-                subjects[subject].topics.forEach(topic => {
-                    topicQueue.push({subject, topic});
-                });
-            });
+        //     gkSubjects.forEach(subject => {
+        //         subjects[subject].topics.forEach(topic => {
+        //             topicQueue.push({subject, topic});
+        //         });
+        //     });
 
-            const pairs = [];
-            const used = new Set();
+        //     const pairs = [];
+        //     const used = new Set();
             
-            for (let i = 0; i < topicQueue.length; i++) {
-                if (used.has(i)) continue;
-                const topic1 = topicQueue[i];
+        //     for (let i = 0; i < topicQueue.length; i++) {
+        //         if (used.has(i)) continue;
+        //         const topic1 = topicQueue[i];
                 
-                for (let j = i + 1; j < topicQueue.length; j++) {
-                    if (used.has(j)) continue;
-                    if (topicQueue[j].subject !== topic1.subject) {
-                        pairs.push([topic1, topicQueue[j]]);
-                        used.add(i);
-                        used.add(j);
+        //         for (let j = i + 1; j < topicQueue.length; j++) {
+        //             if (used.has(j)) continue;
+        //             if (topicQueue[j].subject !== topic1.subject) {
+        //                 pairs.push([topic1, topicQueue[j]]);
+        //                 used.add(i);
+        //                 used.add(j);
+        //                 break;
+        //             }
+        //         }
+        //     }
+            
+        //     return pairs;
+        // }
+
+        // Replace the existing generateTopicPairs function (around line 547-576) with this modified version:
+
+function generateTopicPairs() {
+    // Define subject order: Biology, Geography, Chemistry, Economy first
+    // Then Polity and Physics for the last 1.5 months (45 days)
+    const earlySubjects = ['biology', 'geography', 'chemistry', 'economy'];
+    const lateSubjects = ['polity', 'physics'];
+    
+    const earlyTopicQueue = [];
+    const lateTopicQueue = [];
+    
+    // Populate early subjects queue
+    earlySubjects.forEach(subject => {
+        subjects[subject].topics.forEach(topic => {
+            earlyTopicQueue.push({subject, topic});
+        });
+    });
+    
+    // Populate late subjects queue
+    lateSubjects.forEach(subject => {
+        subjects[subject].topics.forEach(topic => {
+            lateTopicQueue.push({subject, topic});
+        });
+    });
+    
+    const pairs = [];
+    const earlyUsed = new Set();
+    const lateUsed = new Set();
+    
+    // Calculate the cutoff day for when to start polity and physics (1.5 months = 45 days before exam)
+    const cutoffDay = totalDays - 45 - 12; // 45 days before exam, minus 12 revision days = day 37
+    
+    // Generate pairs for early days (0 to cutoffDay)
+    for (let dayIndex = 0; dayIndex <= cutoffDay; dayIndex++) {
+        let foundPair = false;
+        
+        for (let i = 0; i < earlyTopicQueue.length; i++) {
+            if (earlyUsed.has(i)) continue;
+            const topic1 = earlyTopicQueue[i];
+            
+            for (let j = i + 1; j < earlyTopicQueue.length; j++) {
+                if (earlyUsed.has(j)) continue;
+                if (earlyTopicQueue[j].subject !== topic1.subject) {
+                    pairs.push([topic1, earlyTopicQueue[j]]);
+                    earlyUsed.add(i);
+                    earlyUsed.add(j);
+                    foundPair = true;
+                    break;
+                }
+            }
+            if (foundPair) break;
+        }
+        
+        // If no pair found from early subjects, use any remaining
+        if (!foundPair) {
+            for (let i = 0; i < earlyTopicQueue.length; i++) {
+                if (!earlyUsed.has(i)) {
+                    // Find any other unused topic
+                    for (let j = i + 1; j < earlyTopicQueue.length; j++) {
+                        if (!earlyUsed.has(j)) {
+                            pairs.push([earlyTopicQueue[i], earlyTopicQueue[j]]);
+                            earlyUsed.add(i);
+                            earlyUsed.add(j);
+                            foundPair = true;
+                            break;
+                        }
+                    }
+                    if (foundPair) break;
+                }
+            }
+        }
+    }
+    
+    // Generate pairs for later days (after cutoffDay) - mix of all subjects with emphasis on polity and physics
+    const allTopicQueue = [...earlyTopicQueue, ...lateTopicQueue];
+    const allUsed = new Set([...earlyUsed]);
+    
+    for (let dayIndex = cutoffDay + 1; dayIndex < totalDays - 12; dayIndex++) {
+        let foundPair = false;
+        
+        // Prioritize pairing polity/physics with other subjects
+        for (let i = earlyTopicQueue.length; i < allTopicQueue.length; i++) {
+            if (allUsed.has(i)) continue;
+            const topic1 = allTopicQueue[i]; // This will be polity or physics
+            
+            // Try to pair with any other subject
+            for (let j = 0; j < allTopicQueue.length; j++) {
+                if (j === i || allUsed.has(j)) continue;
+                if (allTopicQueue[j].subject !== topic1.subject) {
+                    pairs.push([topic1, allTopicQueue[j]]);
+                    allUsed.add(i);
+                    allUsed.add(j);
+                    foundPair = true;
+                    break;
+                }
+            }
+            if (foundPair) break;
+        }
+        
+        // If no polity/physics pair found, use any available pair
+        if (!foundPair) {
+            for (let i = 0; i < allTopicQueue.length; i++) {
+                if (allUsed.has(i)) continue;
+                for (let j = i + 1; j < allTopicQueue.length; j++) {
+                    if (allUsed.has(j)) continue;
+                    if (allTopicQueue[j].subject !== allTopicQueue[i].subject) {
+                        pairs.push([allTopicQueue[i], allTopicQueue[j]]);
+                        allUsed.add(i);
+                        allUsed.add(j);
+                        foundPair = true;
                         break;
                     }
                 }
+                if (foundPair) break;
             }
-            
-            return pairs;
         }
+    }
+    
+    return pairs;
+}
 
         const topicPairs = generateTopicPairs();
 
@@ -595,22 +716,39 @@
                     dayCard.classList.add('current');
                 }
                 
+                // let dayType, content;
+                
+                // if (i === 92) { // Rest day
+                //     dayType = 'rest-day';
+                //     content = createRestDayContent(i + 1, dateStr);
+                // } else if (i === 93) { // Exam day
+                //     dayType = 'exam-day';
+                //     content = createExamDayContent(i + 1, dateStr);
+                // } else if (i >= totalDays - 12) { // Revision days
+                //     dayType = 'revision-day';
+                //     content = createRevisionDayContent(i + 1, dateStr, finalRevisionTasks[i - (totalDays - 12)]);
+                // } else { // Regular study days
+                //     dayType = 'regular-day';
+                //     content = createRegularDayContent(i + 1, dateStr, i);
+                // }
                 let dayType, content;
-                
-                if (i === 92) { // Rest day
-                    dayType = 'rest-day';
-                    content = createRestDayContent(i + 1, dateStr);
-                } else if (i === 93) { // Exam day
-                    dayType = 'exam-day';
-                    content = createExamDayContent(i + 1, dateStr);
-                } else if (i >= totalDays - 12) { // Revision days
-                    dayType = 'revision-day';
-                    content = createRevisionDayContent(i + 1, dateStr, finalRevisionTasks[i - (totalDays - 12)]);
-                } else { // Regular study days
-                    dayType = 'regular-day';
-                    content = createRegularDayContent(i + 1, dateStr, i);
-                }
-                
+
+        if (i === 92) { // Rest day
+            dayType = 'rest-day';
+            content = createRestDayContent(i + 1, dateStr);
+        } else if (i === 93) { // Exam day
+            dayType = 'exam-day';
+            content = createExamDayContent(i + 1, dateStr);
+        } else if (i >= totalDays - 12) { // Revision days
+            dayType = 'revision-day';
+            content = createRevisionDayContent(i + 1, dateStr, finalRevisionTasks[i - (totalDays - 12)]);
+        } else if (isWeekend(dayDate)) { // Weekend revision
+            dayType = 'revision-day';
+            content = createWeekendRevisionContent(i + 1, dateStr, i);
+        } else { // Regular study days
+            dayType = 'regular-day';
+            content = createRegularDayContent(i + 1, dateStr, i);
+        }
                 dayCard.innerHTML = content;
                 updateDayCompletion(dayCard, i);
                 calendar.appendChild(dayCard);
@@ -716,6 +854,56 @@
             `;
         }
 
+        // 3. Add this new function after the createExamDayContent function (around line 717):
+
+function createWeekendRevisionContent(dayNum, dateStr, dayIndex) {
+    const weekSubjects = getWeekSubjects(dayIndex);
+    const dayName = new Date(dateStr).toLocaleDateString('en-US', { weekday: 'long' });
+    
+    let revisionTasks = [];
+    
+    if (weekSubjects.length > 0) {
+        revisionTasks = [
+            `Weekly Revision: ${weekSubjects.map(s => subjects[s]?.name || s).join(', ')}`,
+            `Mock Test: Mixed Questions (${weekSubjects.map(s => subjects[s]?.name || s).join(' + ')})`,
+            `Previous Week Topics Review`
+        ];
+    } else {
+        revisionTasks = [
+            'Weekly Revision: General Review',
+            'Mock Test: Mixed Questions',
+            'Previous Week Topics Review'
+        ];
+    }
+    
+    let tasksHTML = '';
+    revisionTasks.forEach((task, index) => {
+        tasksHTML += `
+        <div class="topic-item" data-day="${dayIndex}" data-topic="${index}">
+            <input type="checkbox" class="topic-checkbox" onchange="toggleTopic(${dayIndex}, ${index})">
+            <i class="fas fa-clipboard-check topic-icon"></i>
+            <div class="topic-text">${task}</div>
+        </div>
+        `;
+    });
+    
+    return `
+        <div class="day-header">
+            <div>
+                <div class="day-number">Day ${dayNum}</div>
+                <div class="day-date">${formatDate(dateStr)}</div>
+            </div>
+            <div class="day-type revision-day">${dayName} Revision</div>
+        </div>
+        
+        ${tasksHTML}
+        
+        <div class="notes-section">
+            <textarea class="notes-input" placeholder="Weekend revision notes, mock test scores, and weak areas identified..."
+                onchange="saveNotes(${dayIndex}, this.value)">${studyData.notes[dayIndex] || ''}</textarea>
+        </div>
+    `;
+}
         // Helper functions
         function isToday(date) {
             const today = new Date();
@@ -730,6 +918,31 @@
                 day: 'numeric' 
             });
         }
+
+       // 1. First, add this helper function after the formatDate function (around line 732):
+
+function isWeekend(date) {
+    const day = date.getDay();
+    return day === 0 || day === 6; // Sunday = 0, Saturday = 6
+}
+
+function getWeekSubjects(dayIndex) {
+    // Get subjects covered in the past week (5 working days)
+    const weekSubjects = new Set();
+    const startDay = Math.max(0, dayIndex - 6); // Look back 6 days to cover the week
+    
+    for (let i = startDay; i < dayIndex; i++) {
+        if (i < totalDays - 12) { // Only for regular study days
+            const gkPair = topicPairs[i % topicPairs.length];
+            weekSubjects.add('english');
+            weekSubjects.add(gkPair[0].subject);
+            weekSubjects.add(gkPair[1].subject);
+        }
+    }
+    
+    return Array.from(weekSubjects);
+}
+
 
         function toggleTopic(dayIndex, topicIndex) {
             if (!studyData.progress[dayIndex]) {
@@ -780,8 +993,8 @@
 
             for (let i = 0; i < totalRegularDays; i++) {
                 const progress = studyData.progress[i] || {};
-                const topicsInDay = i >= totalDays - 12 ? 1 : 3; // Revision days have 1 task, regular days have 3
-                
+                // const topicsInDay = i >= totalDays - 12 ? 1 : 3; // Revision days have 1 task, regular days have 3
+                const topicsInDay = i >= totalDays - 12 ? 1 : (isWeekend(new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000)) ? 3 : 3);
                 let dayCompleted = 0;
                 for (let j = 0; j < topicsInDay; j++) {
                     if (progress[j]) {
@@ -822,8 +1035,9 @@
                 if (dayDate > today) break;
                 
                 const progress = studyData.progress[i] || {};
-                const topicsInDay = i >= totalDays - 12 ? 1 : 3;
-                
+                // const topicsInDay = i >= totalDays - 12 ? 1 : 3;
+                 const topicsInDay = i >= totalDays - 12 ? 1 : (isWeekend(dayDate) ? 3 : 3);
+
                 let completed = 0;
                 for (let j = 0; j < topicsInDay; j++) {
                     if (progress[j]) completed++;
