@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CDS Vocabulary Mastery Plan</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .slideshow-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slide {
+            display: none;
+            width: 90%;
+            max-width: 1000px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            padding: 40px;
+            text-align: center;
+            animation: slideIn 0.5s ease-in-out;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h2 {
+            color: #444;
+            font-size: 2em;
+            margin-bottom: 25px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            color: #555;
+            font-size: 1.5em;
+            margin: 20px 0 15px 0;
+            text-align: left;
+        }
+
+        .phase-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .goal-box {
+            background: #f8f9ff;
+            border-left: 5px solid #667eea;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .time-box {
+            background: #e8f4fd;
+            border: 2px solid #4a90e2;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .strategy-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .do-learn, .dont-learn {
+            padding: 20px;
+            border-radius: 10px;
+            text-align: left;
+        }
+
+        .do-learn {
+            background: #e8f5e8;
+            border-left: 5px solid #4caf50;
+        }
+
+        .dont-learn {
+            background: #ffe8e8;
+            border-left: 5px solid #f44336;
+        }
+
+        .checklist {
+            text-align: left;
+            margin: 20px 0;
+        }
+
+        .checklist li {
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+
+        .navigation {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            padding: 12px 24px;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .nav-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .slide-counter {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: rgba(255,255,255,0.9);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .timeline {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 10px;
+        }
+
+        .timeline-item {
+            text-align: center;
+            flex: 1;
+        }
+
+        .timeline-date {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .stat-box {
+            background: #667eea;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            display: block;
+        }
+
+        ul {
+            text-align: left;
+            margin: 15px 0;
+        }
+
+        li {
+            margin: 8px 0;
+            padding-left: 10px;
+        }
+
+        .emoji {
+            font-size: 1.2em;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="slideshow-container">
+        
+        <!-- Slide 1: Title -->
+        <div class="slide active">
+            <h1>🎯 CDS VOCABULARY MASTERY PLAN</h1>
+            <div class="highlight">
+                <h2>Target: CDS 2 Exam - September 14, 2025</h2>
+                <p style="font-size: 1.3em; margin-top: 20px;">SMART APPROACH: Quality over Quantity</p>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <span class="stat-number">800-1000</span>
+                    <span>Target Words</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number">3</span>
+                    <span>Months</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number">90%</span>
+                    <span>Target Score</span>
+                </div>
+            </div>
+            <p style="font-size: 1.2em; margin-top: 30px; color: #666;">
+                <strong>Reality Check:</strong> Master 800 words you REMEMBER vs 2000 words you forget!
+            </p>
+        </div>
+
+        <!-- Slide 2: Overview -->
+        <div class="slide">
+            <h2>📋 3-PHASE STRATEGIC APPROACH</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-date">PHASE 1</div>
+                    <div>June 15 - July 15</div>
+                    <div style="margin-top: 10px;"><strong>Foundation</strong></div>
+                    <div>300 High-Frequency Words</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">PHASE 2</div>
+                    <div>July 16 - Aug 15</div>
+                    <div style="margin-top: 10px;"><strong>Intensive</strong></div>
+                    <div>300 Exam-Focused Words</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">PHASE 3</div>
+                    <div>Aug 16 - Sep 14</div>
+                    <div style="margin-top: 10px;"><strong>Mastery</strong></div>
+                    <div>Zero New Words - Pure Revision</div>
+                </div>
+            </div>
+            <div class="highlight">
+                <span class="emoji">⏰</span> Daily Time Commitment: Only 60-90 minutes
+            </div>
+        </div>
+
+        <!-- Slide 3: Phase 1 -->
+        <div class="slide">
+            <div class="phase-header">
+                <h2>📚 PHASE 1: FOUNDATION BUILDING</h2>
+                <p>June 15 - July 15, 2025</p>
+            </div>
+            <div class="goal-box">
+                <h3><span class="emoji">🎯</span> Goal: Learn 300 MOST IMPORTANT words</h3>
+            </div>
+            
+            <div class="time-box">
+                <h3>Daily Schedule - 60 minutes total</h3>
+                <ul>
+                    <li><strong>Morning (20 mins):</strong> 10 new HIGH-FREQUENCY words from Blackbook</li>
+                    <li><strong>Evening (40 mins):</strong> Review + The Hindu editorial (3-5 words only)</li>
+                </ul>
+            </div>
+
+            <div class="highlight">
+                <span class="emoji">⚡</span> <strong>Key Strategy:</strong> Skip difficult/rare words - Focus on "frequently asked" sections only
+            </div>
+        </div>
+
+        <!-- Slide 4: Phase 2 -->
+        <div class="slide">
+            <div class="phase-header">
+                <h2>🚀 PHASE 2: INTENSIVE BUILDING</h2>
+                <p>July 16 - August 15, 2025</p>
+            </div>
+            <div class="goal-box">
+                <h3><span class="emoji">🎯</span> Goal: Add 300 more targeted words</h3>
+            </div>
+            
+            <div class="time-box">
+                <h3>Daily Schedule - 75 minutes total</h3>
+                <ul>
+                    <li><strong>Morning (25 mins):</strong> 12 words from "previous year questions" section</li>
+                    <li><strong>Evening (50 mins):</strong> Vocabulary-focused mini tests + error analysis</li>
+                </ul>
+            </div>
+
+            <div class="checklist">
+                <h3>📝 Focus Areas:</h3>
+                <ul>
+                    <li>✅ Previous year CDS papers - identify repeated words</li>
+                    <li>✅ Word families (democracy → democratic → democratically)</li>
+                    <li>✅ Common prefixes/suffixes for pattern recognition</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 5: Phase 3 -->
+        <div class="slide">
+            <div class="phase-header">
+                <h2>🏆 PHASE 3: EXAM MASTERY</h2>
+                <p>August 16 - September 14, 2025</p>
+            </div>
+            <div class="goal-box">
+                <h3><span class="emoji">🎯</span> Goal: Perfect the 600-800 words learned + NO NEW WORDS</h3>
+            </div>
+            
+            <div class="time-box">
+                <h3>Daily Schedule - 90 minutes total</h3>
+                <ul>
+                    <li><strong>Morning (30 mins):</strong> Rapid revision of 50 previously learned words</li>
+                    <li><strong>Evening (60 mins):</strong> Full CDS mock tests + targeted error analysis</li>
+                </ul>
+            </div>
+
+            <div class="highlight">
+                <span class="emoji">🚫</span> <strong>ZERO NEW LEARNING</strong> - Focus on speed, accuracy & pattern recognition
+            </div>
+        </div>
+
+        <!-- Slide 6: Smart Selection Strategy -->
+        <div class="slide">
+            <h2>🧠 SMART BLACKBOOK STRATEGY</h2>
+            <div class="strategy-grid">
+                <div class="do-learn">
+                    <h3><span class="emoji">✅</span> DO LEARN:</h3>
+                    <ul>
+                        <li>Words marked "Important for competitive exams"</li>
+                        <li>Synonyms/antonyms in multiple contexts</li>
+                        <li>One-word substitutions (high scoring!)</li>
+                        <li>"Previous Year Questions" sections</li>
+                        <li>Common prefixes/suffixes</li>
+                    </ul>
+                </div>
+                <div class="dont-learn">
+                    <h3><span class="emoji">❌</span> DON'T WASTE TIME ON:</h3>
+                    <ul>
+                        <li>Very rare/archaic words</li>
+                        <li>Words with 5+ difficult meanings</li>
+                        <li>Academic jargon not in newspapers</li>
+                        <li>Theoretical etymology sections</li>
+                        <li>Words you'll never encounter again</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="highlight">
+                <span class="emoji">📊</span> <strong>80-20 Rule:</strong> 80% of exam vocabulary comes from 20% of total English words
+            </div>
+        </div>
+
+        <!-- Slide 7: Daily Execution -->
+        <div class="slide">
+            <h2>⏰ DAILY EXECUTION PLAN</h2>
+            
+            <div class="time-box">
+                <h3>Morning Routine (20-30 minutes)</h3>
+                <ul>
+                    <li>🌅 <strong>6:00-6:20 AM:</strong> Learn new words (Phase-specific count)</li>
+                    <li>📝 Write meaning + 1 example sentence</li>
+                    <li>🚫 Skip if word seems too rare or difficult</li>
+                </ul>
+            </div>
+
+            <div class="time-box">
+                <h3>Evening Routine (40-60 minutes)</h3>
+                <ul>
+                    <li>🔄 <strong>7:00-7:40 PM:</strong> Review morning words with flashcards</li>
+                    <li>📰 Read The Hindu editorial - note 3-5 familiar new words</li>
+                    <li>✅ Quick revision of previous day's words</li>
+                    <li>📊 Mini vocabulary tests (Phase 2 & 3)</li>
+                </ul>
+            </div>
+
+            <div class="highlight">
+                <span class="emoji">🎯</span> <strong>Key Principle:</strong> Consistency over Intensity - Even 15 minutes daily beats 3 hours once a week!
+            </div>
+        </div>
+
+        <!-- Slide 8: Weekly Testing -->
+        <div class="slide">
+            <h2>📊 WEEKLY TESTING SCHEDULE</h2>
+            
+            <div class="checklist">
+                <h3>Daily Mini-Tests (15 minutes each):</h3>
+                <ul>
+                    <li><strong>Monday:</strong> Synonyms rapid fire (50 words)</li>
+                    <li><strong>Tuesday:</strong> Antonyms speed test (50 words)</li>
+                    <li><strong>Wednesday:</strong> Contextual usage (25 sentences)</li>
+                    <li><strong>Thursday:</strong> Word roots identification (30 words)</li>
+                    <li><strong>Friday:</strong> Mixed practice (40 questions)</li>
+                    <li><strong>Saturday:</strong> Previous week's revision</li>
+                </ul>
+            </div>
+
+            <div class="time-box">
+                <h3>Sunday - Comprehensive Test (40 minutes)</h3>
+                <ul>
+                    <li>Synonyms: 25 questions (8 mins)</li>
+                    <li>Antonyms: 25 questions (8 mins)</li>
+                    <li>Analogies: 20 questions (10 mins)</li>
+                    <li>Sentence Completion: 15 questions (8 mins)</li>
+                    <li>One-word Substitution: 15 questions (6 mins)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 9: Success Metrics -->
+        <div class="slide">
+            <h2>📈 SUCCESS METRICS & MILESTONES</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <span class="stat-number">End July</span>
+                    <span>500 words | 75% accuracy</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number">End August</span>
+                    <span>800 words | 80% accuracy</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number">Sept 14</span>
+                    <span>800+ words | 90% accuracy</span>
+                </div>
+            </div>
+
+            <div class="time-box">
+                <h3>🎯 Final Target Metrics:</h3>
+                <ul>
+                    <li><strong>Target Score:</strong> 90%+ in English vocabulary section</li>
+                    <li><strong>Speed:</strong> 30 seconds per vocabulary question</li>
+                    <li><strong>Consistency:</strong> 85%+ accuracy in last 10 mock tests</li>
+                    <li><strong>Confidence:</strong> Comfortable with 800+ words by exam day</li>
+                </ul>
+            </div>
+
+            <div class="highlight">
+                <span class="emoji">🏆</span> <strong>Remember:</strong> Quality retention of 800 words > Poor recall of 2000 words
+            </div>
+        </div>
+
+        <!-- Slide 10: Final Tips -->
+        <div class="slide">
+            <h2>💡 FINAL SUCCESS TIPS</h2>
+            
+            <div class="checklist">
+                <h3>🚀 Quick Start Actions for TODAY:</h3>
+                <ul>
+                    <li>✅ Open your Blackbook - find "frequently asked words" section</li>
+                    <li>✅ Download Vocabulary.com and Magoosh apps</li>
+                    <li>✅ Start reading The Hindu editorial section</li>
+                    <li>✅ Learn your first 10 words from the plan</li>
+                </ul>
+            </div>
+
+            <div class="strategy-grid">
+                <div class="do-learn">
+                    <h3><span class="emoji">🎯</span> SUCCESS PRINCIPLES:</h3>
+                    <ul>
+                        <li><strong>Consistency is key</strong> - Daily practice matters more than marathon sessions</li>
+                        <li><strong>Context matters</strong> - Always learn words with example sentences</li>
+                        <li><strong>Use multiple senses</strong> - Write, speak, and visualize</li>
+                        <li><strong>Track progress</strong> - Maintain vocabulary diary religiously</li>
+                    </ul>
+                </div>
+                <div class="dont-learn">
+                    <h3><span class="emoji">⚠️</span> AVOID THESE MISTAKES:</h3>
+                    <ul>
+                        <li>Trying to learn everything in the book</li>
+                        <li>Focusing on quantity over quality</li>
+                        <li>Skipping daily revision</li>
+                        <li>Learning words without context</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="highlight">
+                <span class="emoji">🎖️</span> <strong>You've got this!</strong> Follow the plan consistently for 3 months and watch your vocabulary score soar!
+            </div>
+        </div>
+
+    </div>
+
+    <div class="slide-counter">
+        <span id="current-slide">1</span> / <span id="total-slides">10</span>
+    </div>
+
+    <div class="navigation">
+        <button class="nav-btn" onclick="changeSlide(-1)">← Previous</button>
+        <button class="nav-btn" onclick="changeSlide(1)">Next →</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        
+        document.getElementById('total-slides').textContent = totalSlides;
+
+        function showSlide(n) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (n + totalSlides) % totalSlides;
+            slides[currentSlide].classList.add('active');
+            document.getElementById('current-slide').textContent = currentSlide + 1;
+        }
+
+        function changeSlide(direction) {
+            showSlide(currentSlide + direction);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowRight' || event.key === ' ') {
+                changeSlide(1);
+            } else if (event.key === 'ArrowLeft') {
+                changeSlide(-1);
+            }
+        });
+
+        // Auto-advance every 30 seconds (optional)
+        // setInterval(() => changeSlide(1), 30000);
+    </script>
+</body>
+</html>
